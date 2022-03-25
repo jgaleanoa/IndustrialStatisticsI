@@ -1,0 +1,57 @@
+---
+header-includes:
+- \usepackage{longtable}
+- \usepackage[utf8]{inputenc}
+- \usepackage[spanish]{babel}\decimalpoint
+- \setlength{\parindent}{1.25cm}
+- \usepackage{amsmath}
+- \usepackage{xcolor}
+- \usepackage{cancel}
+- \usepackage{array}
+- \usepackage{float}
+- \usepackage{multirow}
+output:
+  pdf_document:
+    number_sections: true
+fontsize: 12pt
+papersize: letter
+geometry: margin = 1in
+language: "es"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, fig.align = "center")
+library(kableExtra)
+library(knitr)
+library(tidyverse)
+```
+
+\input{titlepage}
+\thispagestyle{empty}
+\tableofcontents
+
+\newpage
+
+\pagestyle{myheadings}
+\setcounter{page}{3}
+
+<!-- Juanjo ------------------------------------------------------ -->
+
+\section{Ejercicio 1}
+
+El peso neto (en onzas) de un producto blanqueador en polvova a monitorearse
+con cartas de control $\bar{x}$ y $R$ utilizando un tamaño de la muestra de 
+$n = 4$. Se registran datos de 25 muestras. Resuelva las siguientes preguntas
+
+<!-- Gaviria ----------------------------------------------------- -->
+
+\section{Ejercicio 2}
+
+
+<!-- Juanjo ------------------------------------------------------ -->
+
+\section{Ejercicio 5}
+
+<!-- Simon ------------------------------------------------------- -->
+
+\section{Ejercicio 6}
