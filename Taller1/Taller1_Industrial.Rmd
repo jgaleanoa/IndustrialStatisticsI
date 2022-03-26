@@ -39,9 +39,90 @@ library(tidyverse)
 
 \section{Ejercicio 1}
 
-El peso neto (en onzas) de un producto blanqueador en polvova a monitorearse
-con cartas de control $\bar{x}$ y $R$ utilizando un tamaño de la muestra de 
-$n = 4$. Se registran datos de 25 muestras. Resuelva las siguientes preguntas
+El peso neto (en onzas) de un producto blanqueador en polvo va a
+monitorearse con cartas de control $\bar{x}$ y $R$ utilizando un tamaño de
+la muestra de $n = 4$. Se registran datos de 25 muestras.
+
+```{r datos1}
+datos1 <- read.table("DatosEJ1.txt", header = T)
+```
+
+\subsection{Prueba de bondad de ajuste a los datos}
+
+La metodología considerada funciona bajo el supuesto de que los datos
+provienen de una distribución normal, por lo que es muy importante chequear
+dicho supuesto antes de proceder con cálculos. 
+
+```{r hist-ej1, fig.cap="Gráficos para chequeo de normalidad"}
+full_sample <- datos1 %>% 
+  select(-Numero_de_muestra) %>% 
+  as.matrix() %>% 
+  as.vector() 
+
+qqplot <- ggplot(mapping = aes(sample = full_sample)) +
+  geom_qq() +
+  geom_qq_line() +
+  labs(x = "Cuantiles teóricos", 
+       y = "Cuantiles muestrales",
+       title = "Gráfico de probabilidad normal") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+hist_peso <- ggplot(mapping = aes(x = full_sample)) +
+  geom_histogram(bins = nclass.Sturges(full_sample), 
+                 col = "black", fill = "lightgreen") +
+  labs(x = "Peso neto (oz)", 
+       y = "Frecuencia", 
+       title = "Distribución del peso neto(oz)") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+ggpubr::ggarrange(qqplot, hist_peso, nrow = 1, ncol = 2)
+```
+
+En el gráfico de probabilidad normal se aprecia que hay múltiples unidades experimentales que tienen el mismo peso. Aunque los puntos no se desvían mucho de la recta, dicho supuesto se ve defectuoso en el histograma puesto que se observa asimetría negativa.
+
+Además de los análisis gráficos, se usa la prueba de normalidad de Shapiro
+- Wilk. \newline Sea $X:$ Peso neto de un producto blanqueador en onzas.
+
+\newpage
+
+Se quiere probar
+
+$$
+\begin{cases}
+H_0: X \sim N(\mu, \sigma^2) \\
+H_1: X \nsim N(\mu, \sigma^2) 
+\end{cases}
+$$
+
+Luego de realizar la prueba de normalidad se obtienen los siguientes
+resultados
+
+```{r shapiro-wilk1}
+test_norm <- data.frame(W = 0.9665, pvalue = 0.01201)
+kable(test_norm, longtable = T, booktabs = T, 
+      caption = "Prueba de normalidad", 
+      col.names = c("W", "Valor-p"))
+```
+
+El valor-p es polémico a un nivel de significancia $\alpha = 0.01$ debido a que se encuentra muy cerca del límite de decisión. Si bien dicho valor es mayor a 0.01, no rechazar $H_0$ es una decisión poco fiable.
+
+Vistos los análisis previos, se considera que la distribución normal no se ajusta bien al peso neto del producto blanqueador, sin embargo para fines de ilustrar la metodología de control del proceso se asume que las desviaciones del supuesto no son muy graves.
+
+\subsection{Gráficos de control para $\bar{x}$ y $R$}
+
+\subsection{Estimación de media y varianza}
+
+\subsection{Porcentaje de defectuosos}
+
+\subsection{¿Cuándo se espera perder el control?}
+
+\subsection{Desplazamiento de media}
+
+\subsection{Muestras necesarias para detectar cambios}
+
+\subsection{Curva de operación característica}
 
 <!-- Gaviria ----------------------------------------------------- -->
 
