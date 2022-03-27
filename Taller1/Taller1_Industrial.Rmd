@@ -246,9 +246,55 @@ mayor a 16.75 oz es aproximadamente el 1.1684 \%.
 
 \subsection{Desplazamiento de media}
 
+Se define $\beta = \mathbb{P}(\text{No detectar el desplazamiento de media | La media se desplazo})$. 
+Si la media del proceso se desplaza a $\mu_1 = 16.2$ y la desviación
+estándar permanece constante, entonces:
+
+$$
+\bar{x} \sim N\left(16.2, \frac{0.2253521^2}{4}\right)
+$$
+
+```{r beta}
+sigma1 <- R_bar/2.059
+beta1 <- pnorm(16.577256, 16.2, sigma1/2) - pnorm(15.900744, 16.2, sigma1/2)
+first_sample <- beta1^(1 - 1)*(1 - beta1)
+```
+
+
+$$
+\begin{aligned}
+\beta &= \mathbb{P}(15.900744 \leq \bar{x} \leq 16.577256 \ | \ \hat{\mu} = 16.2, \ \hat{\sigma} = 0.2253521) \\
+&= `r beta1`
+\end{aligned} 
+$$
+Sea $Y: \text{Número de muestras revisadas hasta detectar cambio en la media del proceso}$
+
+$$
+\begin{aligned}
+&Y \sim Geo(1 - \beta) \Leftrightarrow p_Y(y) = \beta^{y-1}(1 - \beta) \ \text{con} \ \beta = `r beta1` \\
+&\mathbb{P}(Y = 1) = `r 1-beta1`
+\end{aligned}
+$$
+
+El cual es un resultado razonable teniendo en cuenta que el desplazamiento
+de la media fue pequeño numéricamente hablando (0.039 oz).
+
 \subsection{Muestras necesarias para detectar cambios}
 
+Para este caso se quiere calcular el $ARL_1$ (Average run length) puesto que
+se esta suponiendo un proceso fuera de control por una diferencia de 0.039
+respecto al promedio del proceso cuando está en control.
+
+$ARL_1 = \frac{1}{1-\beta} = \frac{1}{1-`r beta1`} = `r 1/(1 - beta1)`$, es
+decir, el número esperado de muestras a revisar hasta encontrar un cambio en
+el peso del producto blanqueador de 0.039 oz es aproximadamente 229.27
+muestras.
+
 \subsection{Curva de operación característica}
+
+Para finalizar, se gráfica la curva de operación característica (OC), la
+cual muestra como disminuye $\beta$ a medida que el desplazamiento de la
+media aumentaba para diferentes valores de $n.$
 
 <!-- Gaviria ----------------------------------------------------- -->
 
