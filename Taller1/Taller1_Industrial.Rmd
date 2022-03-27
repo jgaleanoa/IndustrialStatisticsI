@@ -24,6 +24,8 @@ knitr::opts_chunk$set(echo = F, fig.align = "center")
 library(kableExtra)
 library(knitr)
 library(tidyverse)
+library(qcc)
+library(latex2exp)
 ```
 
 \input{titlepage}
@@ -44,7 +46,8 @@ monitorearse con cartas de control $\bar{x}$ y $R$ utilizando un tamaño de
 la muestra de $n = 4$. Se registran datos de 25 muestras.
 
 ```{r datos1}
-datos1 <- read.table("DatosEJ1.txt", header = T)
+datos1 <- read.table("DatosEJ1.txt", header = T) %>% 
+  select(-Numero_de_muestra)
 ```
 
 \subsection{Prueba de bondad de ajuste a los datos}
@@ -55,7 +58,6 @@ dicho supuesto antes de proceder con cálculos.
 
 ```{r hist-ej1, fig.cap="Gráficos para chequeo de normalidad"}
 full_sample <- datos1 %>% 
-  select(-Numero_de_muestra) %>% 
   as.matrix() %>% 
   as.vector() 
 
@@ -112,7 +114,88 @@ Vistos los análisis previos, se considera que la distribución normal no se aju
 
 \subsection{Gráficos de control para $\bar{x}$ y $R$}
 
-\subsection{Estimación de media y varianza}
+Inicialmente se debe verificar el gráfico de Shewhart para R puesto que los límites de control para $\bar{x}$ dependen de $R$, luego es necesario asegurarse que la variabilidad de $R$ este bajo control antes de proceder con $\bar{x}$.
+
+$$
+\bar{x} = \frac{1}{n} \sum_{i=1}^{n} x_i \hspace{.2in} \bar{\bar{x}} = \frac{1}{m} \sum_{i=1}^{m} \bar{x}_i \hspace{.2in} \bar{R} = \frac{1}{m} \sum_{i=1}^m R_i
+$$
+
+\begin{table}[H]
+\centering
+\caption{Límites de control para $\bar{x}$ y $R$}
+\begin{tabular}{|l|l|l|l|}
+\hline
+   & LCL & CL & UCL \\ \hline
+$\bar{x}$  & $\bar{\bar{x}} - A_2 \bar{R}$   & $\bar{\bar{x}}$  & $\bar{\bar{x}} + A_2 \bar{R}$   \\ \hline
+$R$ & $\bar{R}D_3$   & $\bar{R}$  & $\bar{R}D_4$ \\ \hline  
+\end{tabular}
+\end{table}
+
+```{r control-R, fig.height=6, fig.width=6}
+control_r1 <- qcc(datos1, type = "R", title= "Gráfico de Shewhart para R",
+                  xlab = "Muestra", ylab = "Rango")
+
+```
+
+Puesto que ningún punto cae fuera de los límites de control ni tampoco se observan patrones sistemáticos en el gráfico, se puede proceder a la construcción del diagrama de Shewhart para $\bar{x}$.
+
+```{r control-xbar, fig.height=6, fig.width=6}
+control_xbar1 <- qcc(datos1, type = "xbar", 
+                     title = "Gráfico de Shewhart para el peso promedio",
+                     xlab = "Muestra", ylab = "Peso promedio (oz)")
+```
+
+Similar al caso de $R$, todos los puntos caen dentro de los límites de control y no se observan patrones sistemáticos, se puede concluir que el proceso está bajo control. 
+
+Para finalizar, se verifica el valor de los límites de control obtenidos en R con el paquete `qcc` luego de hacer los calculos manuales.
+
+```{r calculos-manuales}
+x_doble_bar <- apply(datos1, 1, mean) %>% 
+  mean()
+R_bar <- apply(datos1, 1, function(x) max(x) - min(x)) %>% 
+  mean()
+```
+
+
+$$
+\bar{\bar{x}} = \frac{1}{25} \sum_{i=1}^{25} \bar{x}_i = `r x_doble_bar` \hspace{.2in} \bar{R} = \frac{1}{25} \sum_{i=1}^{25} R_i = 0.464
+$$
+
+**Para $\bar{x}$**
+
+Se tiene que $n = 4$, luego $A_2 = 0.729$ por lo tanto los límites de control son
+
+$$
+\begin{aligned}
+\text{UCL} &= `r x_doble_bar` + 0.729 \times `r R_bar`=`r x_doble_bar + 0.729*R_bar` \\
+\text{LCL} &= `r x_doble_bar` - 0.729 \times `r R_bar`=`r x_doble_bar - 0.729*R_bar`
+\end{aligned}
+$$
+estos límites concuerdan con los obtenidos en R a tres cifras decimales, sin embargo hay que tener en cuenta que los calculados por el software son más precisos debido a que consideran más números decimales.
+
+**Para R**
+
+Nuevamente, debido a $n = 4$ se tiene $D_3 = 0$ y $D_4 = 2.282$, así
+
+$$
+\begin{aligned}
+\text{UCL} &= `r R_bar` \times 2.282 = `r R_bar*2.282` \\
+\text{LCL} &= `r R_bar` \times 0 = 0
+\end{aligned}
+$$
+los cuales a cuatro cifras decimales también concuerdan con los obtenidos en el lenguaje de programación R.
+
+\subsection{Estimación de media y varianza del proceso}
+
+Una vez verificado el control del proceso, resulta de interés estimar los parámetros $\mu$ y $\sigma$ de la distribución normal para realizar cálculos como lo puede ser, el porcentaje de producto blanqueador cuyo peso neto este fuera de los límites de control.
+
+El estimador de $\mu$ es $\bar{\bar{x}} = 16.239$ el cual fue calculado en el inciso anterior. Por otro lado, para la desviación estándar se tiene $\hat{\sigma} = \frac{\bar{R}}{d_2}$; en el inciso anterior se llegó a $\bar{R} = `r R_bar`$ y además para $n = 4$ se tiene $d_2 = 2.059$ obteniendo así $\hat{\sigma} = \frac{0.464}{2.059} = `r 0.464/2.059`$.
+
+En resumen
+
+$$
+\hat{\mu} = 16.239 \hspace{.35in} \hat{\sigma} = `r 0.464/2.059`
+$$
 
 \subsection{Porcentaje de defectuosos}
 
