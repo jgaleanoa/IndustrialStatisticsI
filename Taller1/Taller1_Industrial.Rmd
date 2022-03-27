@@ -82,7 +82,10 @@ hist_peso <- ggplot(mapping = aes(x = full_sample)) +
 ggpubr::ggarrange(qqplot, hist_peso, nrow = 1, ncol = 2)
 ```
 
-En el gráfico de probabilidad normal se aprecia que hay múltiples unidades experimentales que tienen el mismo peso. Aunque los puntos no se desvían mucho de la recta, dicho supuesto se ve defectuoso en el histograma puesto que se observa asimetría negativa.
+En el gráfico de probabilidad normal se aprecia que hay múltiples unidades
+experimentales que tienen el mismo peso. Aunque los puntos no se desvían
+mucho de la recta, dicho supuesto se ve defectuoso en el histograma puesto
+que se observa asimetría negativa.
 
 Además de los análisis gráficos, se usa la prueba de normalidad de Shapiro
 - Wilk. \newline Sea $X:$ Peso neto de un producto blanqueador en onzas.
@@ -108,13 +111,21 @@ kable(test_norm, longtable = T, booktabs = T,
       col.names = c("W", "Valor-p"))
 ```
 
-El valor-p es polémico a un nivel de significancia $\alpha = 0.01$ debido a que se encuentra muy cerca del límite de decisión. Si bien dicho valor es mayor a 0.01, no rechazar $H_0$ es una decisión poco fiable.
+El valor-p es polémico a un nivel de significancia $\alpha = 0.01$ debido a
+que se encuentra muy cerca del límite de decisión. Si bien dicho valor es
+mayor a 0.01, no rechazar $H_0$ es una decisión poco fiable.
 
-Vistos los análisis previos, se considera que la distribución normal no se ajusta bien al peso neto del producto blanqueador, sin embargo para fines de ilustrar la metodología de control del proceso se asume que las desviaciones del supuesto no son muy graves.
+Vistos los análisis previos, se considera que la distribución normal no se
+ajusta bien al peso neto del producto blanqueador, sin embargo para fines 
+de ilustrar la metodología de control del proceso se asume que las
+desviaciones del supuesto no son muy graves.
 
 \subsection{Gráficos de control para $\bar{x}$ y $R$}
 
-Inicialmente se debe verificar el gráfico de Shewhart para R puesto que los límites de control para $\bar{x}$ dependen de $R$, luego es necesario asegurarse que la variabilidad de $R$ este bajo control antes de proceder con $\bar{x}$.
+Inicialmente se debe verificar el gráfico de Shewhart para R puesto que los
+límites de control para $\bar{x}$ dependen de $R$, luego es necesario
+asegurarse que la variabilidad de $R$ este bajo control antes de proceder
+con $\bar{x}$.
 
 $$
 \bar{x} = \frac{1}{n} \sum_{i=1}^{n} x_i \hspace{.2in} \bar{\bar{x}} = \frac{1}{m} \sum_{i=1}^{m} \bar{x}_i \hspace{.2in} \bar{R} = \frac{1}{m} \sum_{i=1}^m R_i
@@ -137,7 +148,9 @@ control_r1 <- qcc(datos1, type = "R", title= "Gráfico de Shewhart para R",
 
 ```
 
-Puesto que ningún punto cae fuera de los límites de control ni tampoco se observan patrones sistemáticos en el gráfico, se puede proceder a la construcción del diagrama de Shewhart para $\bar{x}$.
+Puesto que ningún punto cae fuera de los límites de control ni tampoco se
+observan patrones sistemáticos en el gráfico, se puede proceder a la
+construcción del diagrama de Shewhart para $\bar{x}$.
 
 ```{r control-xbar, fig.height=6, fig.width=6}
 control_xbar1 <- qcc(datos1, type = "xbar", 
@@ -145,9 +158,12 @@ control_xbar1 <- qcc(datos1, type = "xbar",
                      xlab = "Muestra", ylab = "Peso promedio (oz)")
 ```
 
-Similar al caso de $R$, todos los puntos caen dentro de los límites de control y no se observan patrones sistemáticos, se puede concluir que el proceso está bajo control. 
+Similar al caso de $R$, todos los puntos caen dentro de los límites de
+control y no se observan patrones sistemáticos, se puede concluir que el
+proceso está bajo control. 
 
-Para finalizar, se verifica el valor de los límites de control obtenidos en R con el paquete `qcc` luego de hacer los calculos manuales.
+Para finalizar, se verifica el valor de los límites de control obtenidos en
+R con el paquete `qcc` luego de hacer los calculos manuales.
 
 ```{r calculos-manuales}
 x_doble_bar <- apply(datos1, 1, mean) %>% 
@@ -163,7 +179,8 @@ $$
 
 **Para $\bar{x}$**
 
-Se tiene que $n = 4$, luego $A_2 = 0.729$ por lo tanto los límites de control son
+Se tiene que $n = 4$, luego $A_2 = 0.729$ por lo tanto los límites de
+control son
 
 $$
 \begin{aligned}
@@ -171,7 +188,9 @@ $$
 \text{LCL} &= `r x_doble_bar` - 0.729 \times `r R_bar`=`r x_doble_bar - 0.729*R_bar`
 \end{aligned}
 $$
-estos límites concuerdan con los obtenidos en R a tres cifras decimales, sin embargo hay que tener en cuenta que los calculados por el software son más precisos debido a que consideran más números decimales.
+estos límites concuerdan con los obtenidos en R a tres cifras decimales, sin
+embargo hay que tener en cuenta que los calculados por el software son más
+precisos debido a que consideran más números decimales.
 
 **Para R**
 
@@ -183,13 +202,21 @@ $$
 \text{LCL} &= `r R_bar` \times 0 = 0
 \end{aligned}
 $$
-los cuales a cuatro cifras decimales también concuerdan con los obtenidos en el lenguaje de programación R.
+los cuales a cuatro cifras decimales también concuerdan con los obtenidos 
+en el lenguaje de programación R.
 
 \subsection{Estimación de media y varianza del proceso}
 
-Una vez verificado el control del proceso, resulta de interés estimar los parámetros $\mu$ y $\sigma$ de la distribución normal para realizar cálculos como lo puede ser, el porcentaje de producto blanqueador cuyo peso neto este fuera de los límites de control.
+Una vez verificado el control del proceso, resulta de interés estimar los
+parámetros $\mu$ y $\sigma$ de la distribución normal para realizar
+cálculos como lo puede ser, el porcentaje de producto blanqueador cuyo 
+peso neto este fuera de los límites de control.
 
-El estimador de $\mu$ es $\bar{\bar{x}} = 16.239$ el cual fue calculado en el inciso anterior. Por otro lado, para la desviación estándar se tiene $\hat{\sigma} = \frac{\bar{R}}{d_2}$; en el inciso anterior se llegó a $\bar{R} = `r R_bar`$ y además para $n = 4$ se tiene $d_2 = 2.059$ obteniendo así $\hat{\sigma} = \frac{0.464}{2.059} = `r 0.464/2.059`$.
+El estimador de $\mu$ es $\bar{\bar{x}} = 16.239$ el cual fue calculado en
+el inciso anterior. Por otro lado, para la desviación estándar se tiene
+$\hat{\sigma} = \frac{\bar{R}}{d_2}$; en el inciso anterior se llegó a
+$\bar{R} = `r R_bar`$ y además para $n = 4$ se tiene $d_2 = 2.059$
+obteniendo así $\hat{\sigma} = \frac{0.464}{2.059} = `r 0.464/2.059`$.
 
 En resumen
 
@@ -198,6 +225,22 @@ $$
 $$
 
 \subsection{Porcentaje de defectuosos}
+
+Suponiendo que el fabricante establece como medidas de especificación para
+el peso del producto blanqueador $16 \pm 0.75 \text{ oz}$ el porcentaje de
+defectuosos se puede calcular como 
+$\left[1 - \mathbb{P}(15.25\leq X \leq 16.75)\right] \times 100\%$
+con $X \sim N\left(16.239, \ 0.2253521^2\right)$.
+
+```{r porc-def}
+prob_in <- pnorm(16.75, 16.239, 0.2253521) - pnorm(15.25, 16.239, 0.2253521)
+```
+
+Se puede verificar que $\mathbb{P}(15.25\leq X \leq 16.75) = `r prob_in`$
+por lo que el porcentaje de productos defectuosos es 
+$(1 - `r prob_in`) \times 100\% = `r (1 - prob_in)*100` \%$, es decir, la
+cantidad de producto blanqueador producido cuyo peso será menor a 15.25 o
+mayor a 16.75 oz es aproximadamente el 1.1684 \%.
 
 \subsection{¿Cuándo se espera perder el control?}
 
