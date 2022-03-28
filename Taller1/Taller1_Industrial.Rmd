@@ -47,6 +47,23 @@ $n = 4$. Se registran datos de 25 muestras. Resuelva las siguientes preguntas
 
 \section{Ejercicio 2}
 
+El volumen de llenado de las botellas de refresco es una característica de calidad
+importante. El volumen se mide colocando un medidor sobre la boca de la botella y
+comparando la altura del líquido en el cuello de la botella con una escala codificada.
+En esta escala, una lectura cero corresponde a la altura de llenado correcta. Se
+analizan 20 muestras de tamaño 9.
+
+\subsection{Literal a}
+
+\subsection{Literal b}
+
+\subsection{Literal c}
+
+\subsection{Literal d}
+
+\subsection{Literal e}
+
+\subsection{Literal f}
 
 <!-- Juanjo ------------------------------------------------------ -->
 
