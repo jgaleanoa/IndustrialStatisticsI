@@ -145,7 +145,6 @@ $R$ & $\bar{R}D_3$   & $\bar{R}$  & $\bar{R}D_4$ \\ \hline
 ```{r control-R, fig.height=6, fig.width=6}
 control_r1 <- qcc(datos1, type = "R", title= "Gráfico de Shewhart para R",
                   xlab = "Muestra", ylab = "Rango")
-
 ```
 
 Puesto que ningún punto cae fuera de los límites de control ni tampoco se
@@ -242,7 +241,18 @@ $(1 - `r prob_in`) \times 100\% = `r (1 - prob_in)*100` \%$, es decir, la
 cantidad de producto blanqueador producido cuyo peso será menor a 15.25 o
 mayor a 16.75 oz es aproximadamente el 1.1684 \%.
 
-\subsection{¿Cuándo se espera perder el control?}
+\subsection{ARL del proceso}
+
+Se define $\alpha: \mathbb{P}(\text{Detectar desplazamiento de media | La media NO se desplazo})$. 
+Teniendo en cuenta que el proceso se encuentra en control y además se está
+trabajando con 3 desviaciones estándar (lo cual implica $\alpha = 0.0027$)
+el número de esperado de muestras que se deben inspeccionar hasta encontrar
+una fuera de control es:
+
+$$
+\text{ARL}_0 = \frac{1}{\alpha} = \frac{1}{0.0027} = 370.3704
+$$
+
 
 \subsection{Desplazamiento de media}
 
@@ -281,7 +291,7 @@ de la media fue pequeño numéricamente hablando (0.039 oz).
 
 \subsection{Muestras necesarias para detectar cambios}
 
-Para este caso se quiere calcular el $ARL_1$ (Average run length) puesto que
+Para este caso se quiere calcular el $ARL_1$ puesto que
 se esta suponiendo un proceso fuera de control por una diferencia de 0.039
 respecto al promedio del proceso cuando está en control.
 
@@ -296,8 +306,25 @@ Para finalizar, se gráfica la curva de operación característica (OC), la
 cual muestra como disminuye $\beta$ a medida que el desplazamiento de la
 media aumenta para diferentes valores de $n.$
 
-```{r oc-xbar}
-oc.curves(control_xbar1, n = 1:4*5)
+```{r aux_chunk, include=F}
+qcc_curve <- oc.curves(control_xbar1, n = 5*1:4)
+```
+
+```{r oc_curve, warning=F}
+oc_data <- matrix(qcc_curve, ncol = 1) %>% 
+  cbind(n = rep(5*1:4, each = nrow(qcc_curve)),
+        beta = as.numeric(rownames(qcc_curve))) %>% 
+  as.data.frame() %>% 
+  mutate(n = as.factor(n))
+colnames(oc_data) <- c("beta", "n", "k")
+
+ggplot(oc_data, aes(k, beta)) +
+  geom_line(aes(color = n), size = 0.75) +
+  xlim(0, 3) +
+  labs(title = "Curva de operación característica",
+       y = TeX("$beta$")) +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5))
 ```
 
 * Cuando el tamaño de muestra aumenta la probabilidad de no detectar el
@@ -306,37 +333,11 @@ cambio cuando hay desplazamiento de media, disminuye
 aumentar cuando el desplazamiento es de aproximadamente 0.5 desviaciones
 estándar.
 * Para desplazamientos de aproximadamente 1.5 desviaciones estándar los
-valores de $\beta$ son muy cercanos a cero para $n \in \{5,10,15\}$, sin
+valores de $\beta$ son muy cercanos a cero para $n \in \{10,15,20\}$, sin
 embargo dicho tamaños de muestra ya se pueden considerar grandes por lo que
 no sería adecuado usar el rango como medida de dispersión.
 * Para $n=5$ los valores de $\beta$ tienden a cero para valores de $k$ un
-poco mayores a 2.
-
-```{r eval=F}
-k <- seq(0, 5, length.out = 200)
-mu1 <- x_doble_bar + k*sigma1
-for(i in 1:4*5){
-  beta <- pnorm(16.577256, mu1, sigma1/sqrt(i)) - 
-    pnorm(15.900744, mu1, sigma1/sqrt(i))
-  n <- rep(i, length(beta))
-  if(i == 5) {
-    aux_mat <- cbind(mu1, beta, n)
-  }
-  aux_mat <- rbind(aux_mat, cbind(mu1, beta, n)) 
-}
-aux_mat <- aux_mat[-(1:200), ] %>% 
-  cbind(k = rep(k, 4)) %>% 
-  as.data.frame() %>% 
-  mutate(n = as.factor(n))
-
-ggplot(aux_mat, aes(k, beta)) +
-  geom_line(aes(color = n), size = 0.75) +
-  labs(title = "Curva de operación característica",
-       y = TeX("$beta$")) +
-  theme_bw() +
-  theme(plot.title = element_text(hjust = 0.5))
-```
-
+poco mayores a 2, alcanzando el 0 aproximadamente en $k=2.5$
 
 <!-- Gaviria ----------------------------------------------------- -->
 
