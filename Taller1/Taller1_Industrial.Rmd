@@ -294,7 +294,49 @@ muestras.
 
 Para finalizar, se gráfica la curva de operación característica (OC), la
 cual muestra como disminuye $\beta$ a medida que el desplazamiento de la
-media aumentaba para diferentes valores de $n.$
+media aumenta para diferentes valores de $n.$
+
+```{r oc-xbar}
+oc.curves(control_xbar1, n = 1:4*5)
+```
+
+* Cuando el tamaño de muestra aumenta la probabilidad de no detectar el
+cambio cuando hay desplazamiento de media, disminuye
+* La potencia $(1 - \beta)$ para detectar cambios en el proceso comienza a
+aumentar cuando el desplazamiento es de aproximadamente 0.5 desviaciones
+estándar.
+* Para desplazamientos de aproximadamente 1.5 desviaciones estándar los
+valores de $\beta$ son muy cercanos a cero para $n \in \{5,10,15\}$, sin
+embargo dicho tamaños de muestra ya se pueden considerar grandes por lo que
+no sería adecuado usar el rango como medida de dispersión.
+* Para $n=5$ los valores de $\beta$ tienden a cero para valores de $k$ un
+poco mayores a 2.
+
+```{r eval=F}
+k <- seq(0, 5, length.out = 200)
+mu1 <- x_doble_bar + k*sigma1
+for(i in 1:4*5){
+  beta <- pnorm(16.577256, mu1, sigma1/sqrt(i)) - 
+    pnorm(15.900744, mu1, sigma1/sqrt(i))
+  n <- rep(i, length(beta))
+  if(i == 5) {
+    aux_mat <- cbind(mu1, beta, n)
+  }
+  aux_mat <- rbind(aux_mat, cbind(mu1, beta, n)) 
+}
+aux_mat <- aux_mat[-(1:200), ] %>% 
+  cbind(k = rep(k, 4)) %>% 
+  as.data.frame() %>% 
+  mutate(n = as.factor(n))
+
+ggplot(aux_mat, aes(k, beta)) +
+  geom_line(aes(color = n), size = 0.75) +
+  labs(title = "Curva de operación característica",
+       y = TeX("$beta$")) +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
 
 <!-- Gaviria ----------------------------------------------------- -->
 
