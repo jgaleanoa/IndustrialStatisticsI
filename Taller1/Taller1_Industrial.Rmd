@@ -29,6 +29,7 @@ library(knitr)
 library(tidyverse)
 library(qcc)
 library(latex2exp)
+source("WrappersControl.R", encoding = "UTF-8")
 ```
 
 ```{=tex}
@@ -42,6 +43,7 @@ library(latex2exp)
 \pagestyle{myheadings}
 \setcounter{page}{3}
 ```
+
 <!-- Juanjo ------------------------------------------------------ -->
 
 \section{Ejercicio 1}
@@ -149,7 +151,9 @@ $R$ & $\bar{R}D_3$   & $\bar{R}$  & $\bar{R}D_4$ \\ \hline
 
 ```{r control-R, fig.height=6, fig.width=6}
 control_r1 <- qcc(datos1, type = "R", title= "Gráfico de Shewhart para R",
-                  xlab = "Muestra", ylab = "Rango")
+                  xlab = "Muestra", ylab = "Rango", plot = F)
+sdcontrolchart(control_r1) +
+  labs(title = "Gráfico de Shewart para R", y = "Rango")
 ```
 
 Puesto que ningún punto cae fuera de los límites de control ni tampoco se
@@ -159,7 +163,10 @@ construcción del diagrama de Shewhart para $\bar{x}$.
 ```{r control-xbar, fig.height=6, fig.width=6}
 control_xbar1 <- qcc(datos1, type = "xbar", 
                      title = "Gráfico de Shewhart para el peso promedio",
-                     xlab = "Muestra", ylab = "Peso promedio (oz)")
+                     xlab = "Muestra", ylab = "Peso promedio (oz)", plot = F)
+meancontrolchart(control_xbar1) +
+  labs(title = TeX("Gráfico de Shewart para $\\bar{x}$"), 
+       y = "Peso promedio (oz)")
 ```
 
 Similar al caso de $R$, todos los puntos caen dentro de los límites de
@@ -192,9 +199,7 @@ $$
 \text{LCL} &= `r x_doble_bar` - 0.729 \times `r R_bar`=`r x_doble_bar - 0.729*R_bar`
 \end{aligned}
 $$
-estos límites concuerdan con los obtenidos en R a tres cifras decimales, sin
-embargo hay que tener en cuenta que los calculados por el software son más
-precisos debido a que consideran más números decimales.
+estos límites concuerdan con los obtenidos en R.
 
 **Para R**
 
@@ -206,8 +211,8 @@ $$
 \text{LCL} &= `r R_bar` \times 0 = 0
 \end{aligned}
 $$
-los cuales a cuatro cifras decimales también concuerdan con los obtenidos 
-en el lenguaje de programación R.
+los cuales también concuerdan con los obtenidos en el lenguaje de programación
+R.
 
 \subsection{Estimación de media y varianza del proceso}
 
@@ -248,7 +253,7 @@ mayor a 16.75 oz es aproximadamente el 1.1684 \%.
 
 \subsection{ARL del proceso}
 
-Se define $\alpha: \mathbb{P}(\text{Detectar desplazamiento de media | La media NO se desplazo})$. 
+Se define $\alpha: \mathbb{P}(\text{Detectar desplazamiento de media | La media NO se desplazo})$. \newline
 Teniendo en cuenta que el proceso se encuentra en control y además se está
 trabajando con 3 desviaciones estándar (lo cual implica $\alpha = 0.0027$)
 el número de esperado de muestras que se deben inspeccionar hasta encontrar
@@ -308,8 +313,8 @@ muestras.
 \subsection{Curva de operación característica}
 
 Para finalizar, se gráfica la curva de operación característica (OC), la
-cual muestra como disminuye $\beta$ a medida que el desplazamiento de la
-media aumenta para diferentes valores de $n.$
+cual ilustra como disminuye $\beta$ a medida que el desplazamiento de la
+media aumenta para diferentes tamaños de muestra.
 
 ```{r aux_chunk, include=F}
 qcc_curve <- oc.curves(control_xbar1, n = 5*1:4)
@@ -395,56 +400,6 @@ una distribución normal.
 Para verificar si el proceso de llenado de las botellas está controlado,
 se puede recurrir a las gráficas de control $\bar{x}$ y S ya que en este
 caso, el tamaño de muestra es moderadamente grande.
-
-```{r wrappers para graficos de control}
-sdcontrolchart <- function(sdqcc){
-  #sdqcc es un objeto qcc para la desviacion
-  sdqccdf <- data.frame(Subgrupo = 1:length(sdqcc$statistics), 
-                      Desviaciones = sdqcc$statistics)
-
-ggplot(sdqccdf, aes(Subgrupo, Desviaciones)) +
-  geom_point() +
-  geom_point(data = data.frame(Subgrupo = sdqcc$violations$beyond.limits, 
-             Desviaciones=sdqccdf$Desviaciones[sdqcc$violations$beyond.limits]),                   colour = "red", size = 2)+
-  geom_path()+
-  geom_hline(yintercept=sdqcc$limits[1], linetype="dashed",size=1)+
-  geom_hline(yintercept=sdqcc$limits[2], linetype="dashed",size=1)+
-  geom_hline(yintercept=sdqcc$center, linetype="dashed",size=1)+
-  geom_label(aes(x = 25, y = sdqcc$limits[1], label = "LCL"))+
-  geom_label(aes(x = 25, y = sdqcc$limits[2], label = "UCL"))+
-  geom_label(aes(x = 25, y = sdqcc$center, label = "CL"))+
-  geom_label(aes(x = 0, y = sdqcc$limits[1], label = round(sdqcc$limits[1],3)))+
-  geom_label(aes(x = 0, y = sdqcc$limits[2], label = round(sdqcc$limits[2],3)))+
-  geom_label(aes(x = 0, y = sdqcc$center, label = round(sdqcc$center,3)))+
-  labs(title="Gráfico de control para desviaciones")+
-  theme_bw()+
-  theme(plot.title = element_text(hjust = 0.5))
-}
-#------------------------------------------------------------------
-
-meancontrolchart <- function(meanqcc){
-  #meanqcc es un objeto qcc después de depurar
-  meanqccdf <- data.frame(Subgrupo = 1:length(meanqcc$statistics), 
-                        Promedios = meanqcc$statistics)
-ggplot(meanqccdf, aes(Subgrupo, Promedios)) +
-  geom_point() +
-  geom_point(data = data.frame(Subgrupo = meanqcc$violations$beyond.limits,
-            Promedios = meanqccdf$Promedios[meanqcc$violations$beyond.limits]),                   colour = "red", size = 2)+
-  geom_path()+
-  geom_hline(yintercept=meanqcc$limits[1], linetype="dashed",size=1)+
-  geom_hline(yintercept=meanqcc$limits[2], linetype="dashed",size=1)+
-  geom_hline(yintercept=meanqcc$center, linetype="dashed",size=1)+
-  geom_label(aes(x = 25, y = meanqcc$limits[1], label = "LCL"))+
-  geom_label(aes(x = 25, y = meanqcc$limits[2], label = "UCL"))+
-  geom_label(aes(x = 25, y = meanqcc$center, label = "CL"))+
-  geom_label(aes(x = 0, y = meanqcc$limits[1], label = round(meanqcc$limits[1],3)))+
-  geom_label(aes(x = 0, y = meanqcc$limits[2], label = round(meanqcc$limits[2],3)))+
-  geom_label(aes(x = 0, y = meanqcc$center, label = round(meanqcc$center,3)))+
-  labs(title="Gráfico de control para promedios")+
-  theme_bw()+
-  theme(plot.title = element_text(hjust = 0.5))
-}
-```
 
 Así pues, inicialmente se debe verificar que la desviación del proceso
 está en control, y para esta causa se plantea el siguiente gráfico de
