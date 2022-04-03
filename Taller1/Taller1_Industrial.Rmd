@@ -11,12 +11,15 @@ header-includes:
 - \usepackage{float}
 - \usepackage{multirow}
 output:
-  pdf_document:
-    number_sections: true
+  pdf_document: 
+    number_sections: yes
 fontsize: 12pt
 papersize: letter
 geometry: margin = 1in
 language: "es"
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
 ```{r setup, include=FALSE}
@@ -28,15 +31,17 @@ library(qcc)
 library(latex2exp)
 ```
 
+```{=tex}
 \input{titlepage}
 \thispagestyle{empty}
 \tableofcontents
-
+```
 \newpage
 
+```{=tex}
 \pagestyle{myheadings}
 \setcounter{page}{3}
-
+```
 <!-- Juanjo ------------------------------------------------------ -->
 
 \section{Ejercicio 1}
@@ -162,7 +167,7 @@ control y no se observan patrones sistemáticos, se puede concluir que el
 proceso está bajo control. 
 
 Para finalizar, se verifica el valor de los límites de control obtenidos en
-R con el paquete `qcc` luego de hacer los calculos manuales.
+R con el paquete `qcc` luego de hacer los cálculos manuales.
 
 ```{r calculos-manuales}
 x_doble_bar <- apply(datos1, 1, mean) %>% 
@@ -343,6 +348,317 @@ poco mayores a 2, alcanzando el 0 aproximadamente en $k=2.5$
 
 \section{Ejercicio 2}
 
+El volumen de llenado de las botellas de refresco es una característica
+de calidad importante. El volumen se mide colocando un medidor sobre la
+boca de la botella y comparando la altura del líquido en el cuello de la
+botella con una escala codificada. En esta escala, una lectura cero
+corresponde a la altura de llenado correcta. Se analizan 25 muestras de
+tamaño 9. La estructura de los datos se muestra como sigue:
+
+```{r datos punto 2}
+bd <- read.table("bdp2.txt", header = T)
+kable(head(bd), caption = "Primeras 6 muestras de 25",
+      align = 'c',
+      longtable = T,
+      booktab= T)
+```
+
+\subsection{Literal a}
+
+Para verificar la normalidad de los datos muestrales, se puede acudir a
+diferentes métodos. Para este caso, haciendo uso de la prueba formal de
+Shapiro-Wilk acompañada de un elemento gráfico se obtiene lo siguiente:
+
+```{r gráfico normalidad punto 2, fig.cap="Prueba de normalidad punto 2", fig.pos='H', fig.height=3.5}
+bda <- data.frame(Muestra = rep(1:25,9), X = c(bd$X1,bd$X2,bd$X3,bd$X4,bd$X5,bd$X6,
+                                               bd$X7,bd$X8,bd$X9))
+
+ggplot(bda, aes(sample = X)) +
+  stat_qq() +
+  stat_qq_line() +
+  labs(x = "Cuantiles Teóricos", y = "Cuantiles Reales", title = "Gráfico Cuantil-Cuantil") +
+  geom_label(aes(x = -2, y = 2.3, label = "Resultado Shapiro-Wilk\n W = 0.9969\n Valor-P = 0.9445"))+
+  theme_bw()+
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+Con el gráfico anterior se puede concluir que: dado que los puntos se
+ajustan bien a la recta normal, se puede decir que los datos de la
+muestra provienen de una población que se distribuye normalmente. Por
+otro lado, usando cualquier nivel de significancia usual, la prueba de
+Shapiro Wilk concluye con evidencia fuerte el buen ajuste de los datos a
+una distribución normal.
+
+\subsection{Literal b}
+
+Para verificar si el proceso de llenado de las botellas está controlado,
+se puede recurrir a las gráficas de control $\bar{x}$ y S ya que en este
+caso, el tamaño de muestra es moderadamente grande.
+
+```{r wrappers para graficos de control}
+sdcontrolchart <- function(sdqcc){
+  #sdqcc es un objeto qcc para la desviacion
+  sdqccdf <- data.frame(Subgrupo = 1:length(sdqcc$statistics), 
+                      Desviaciones = sdqcc$statistics)
+
+ggplot(sdqccdf, aes(Subgrupo, Desviaciones)) +
+  geom_point() +
+  geom_point(data = data.frame(Subgrupo = sdqcc$violations$beyond.limits, 
+             Desviaciones=sdqccdf$Desviaciones[sdqcc$violations$beyond.limits]),                   colour = "red", size = 2)+
+  geom_path()+
+  geom_hline(yintercept=sdqcc$limits[1], linetype="dashed",size=1)+
+  geom_hline(yintercept=sdqcc$limits[2], linetype="dashed",size=1)+
+  geom_hline(yintercept=sdqcc$center, linetype="dashed",size=1)+
+  geom_label(aes(x = 25, y = sdqcc$limits[1], label = "LCL"))+
+  geom_label(aes(x = 25, y = sdqcc$limits[2], label = "UCL"))+
+  geom_label(aes(x = 25, y = sdqcc$center, label = "CL"))+
+  geom_label(aes(x = 0, y = sdqcc$limits[1], label = round(sdqcc$limits[1],3)))+
+  geom_label(aes(x = 0, y = sdqcc$limits[2], label = round(sdqcc$limits[2],3)))+
+  geom_label(aes(x = 0, y = sdqcc$center, label = round(sdqcc$center,3)))+
+  labs(title="Gráfico de control para desviaciones")+
+  theme_bw()+
+  theme(plot.title = element_text(hjust = 0.5))
+}
+#------------------------------------------------------------------
+
+meancontrolchart <- function(meanqcc){
+  #meanqcc es un objeto qcc después de depurar
+  meanqccdf <- data.frame(Subgrupo = 1:length(meanqcc$statistics), 
+                        Promedios = meanqcc$statistics)
+ggplot(meanqccdf, aes(Subgrupo, Promedios)) +
+  geom_point() +
+  geom_point(data = data.frame(Subgrupo = meanqcc$violations$beyond.limits,
+            Promedios = meanqccdf$Promedios[meanqcc$violations$beyond.limits]),                   colour = "red", size = 2)+
+  geom_path()+
+  geom_hline(yintercept=meanqcc$limits[1], linetype="dashed",size=1)+
+  geom_hline(yintercept=meanqcc$limits[2], linetype="dashed",size=1)+
+  geom_hline(yintercept=meanqcc$center, linetype="dashed",size=1)+
+  geom_label(aes(x = 25, y = meanqcc$limits[1], label = "LCL"))+
+  geom_label(aes(x = 25, y = meanqcc$limits[2], label = "UCL"))+
+  geom_label(aes(x = 25, y = meanqcc$center, label = "CL"))+
+  geom_label(aes(x = 0, y = meanqcc$limits[1], label = round(meanqcc$limits[1],3)))+
+  geom_label(aes(x = 0, y = meanqcc$limits[2], label = round(meanqcc$limits[2],3)))+
+  geom_label(aes(x = 0, y = meanqcc$center, label = round(meanqcc$center,3)))+
+  labs(title="Gráfico de control para promedios")+
+  theme_bw()+
+  theme(plot.title = element_text(hjust = 0.5))
+}
+```
+
+Así pues, inicialmente se debe verificar que la desviación del proceso
+está en control, y para esta causa se plantea el siguiente gráfico de
+control:
+
+```{r gráfico para la desviacion, fig.cap="Gráfico de control para la desviación", fig.pos='H', fig.height=3.5}
+sdqcc <- qcc(bd[,-1], type="S", plot= F)
+sdcontrolchart(sdqcc)
+```
+
+Así, de este último se aprecia que, el subgrupo 7 de la muestra presenta
+una desviación por encima del límite de control superior, por lo tanto
+se procede a recalcular lo anterior sin este.
+
+```{r gráfico para la desviacion2, fig.cap="Gráfico de control para la desviación", fig.pos='H', fig.height=3.5}
+sdqcc2 <- qcc(bd[-7,-1], type="S", plot= F)
+sdcontrolchart(sdqcc2)
+```
+
+Finalmente, después de eliminar el subgrupo 7, se obtiene un proceso con
+varianza en control y por lo tanto se puede proceder a obtener el
+gráfico de control para $\bar{x}$ como se muestra a continuación:
+
+```{r gráfico para la media, fig.cap="Gráfico de control para la media", fig.pos='H', fig.height=3.5}
+meanqcc <- qcc(bd[-7,-1], type="xbar",std.dev = "UWAVE-SD", plot = F)
+meancontrolchart(meanqcc)
+```
+
+De acá se puede apreciar que la media del proceso aún no se encuentra en
+control puesto que, la muestra 20 presenta un promedio por encima del
+límite de control superior. Así entonces, se procede a eliminar el
+mencionado y a recalcular lo anterior como sigue:
+
+```{r gráfico para la media2, fig.cap="Gráfico de control para la media", fig.pos='H', fig.height=3.5}
+meanqcc2 <- qcc(bd[-c(7,20),-1], type="xbar",std.dev = "UWAVE-SD", plot = F)
+meancontrolchart(meanqcc2)
+```
+
+Concluyendo, en la fase I se logró detectar inicialmente que la varianza
+del proceso estaba fuera de control gracias al subgrupo racional número 7.
+Posteriormente se eliminó esta observación de la muestra y se logró
+obtener una desviación del proceso dentro de los límites. Así
+entonces, se construyó la gráfica de control para la media, encontrando
+que el subgrupo 20 no permitía un proceso centrado. Sin embargo,
+después de eliminar el mismo, se obtuvieron la gráficas de control
+deseadas para un proceso que se encuentra operando de manera contenida.
+
+\subsection{Literal c}
+
+Luego de realizar lo anterior, es de interés calcular la media y la
+desviación estándar del proceso sin incluir las observaciones depuradas
+en el literal b.
+
+Así entonces, la expresión para calcular la media del proceso
+$\bar{\bar{x}}$ está dada por:
+
+$$
+\bar{\bar{x}} = \frac{1}{m}\sum_{i=1}^m \bar{x_i}
+$$
+
+Donde $\bar{x_i}$ es la media dentro de cada subgrupo.
+
+Por otro lado, para la desviación se debe tener en cuenta que su
+respectivo estimador insesgado se encuentra dado por la siguiente
+expresión:
+
+$$
+\hat{\sigma} = \frac{S}{C4}
+$$
+
+Donde S está dado por:
+
+$$
+S = \sqrt{\frac{1}{n-1}\sum_{i=1}^n(x_i-\bar{x})^2}
+$$
+
+Y C4 es una constante para n = 9
+
+Usando los datos en las expresiones anteriores se obtiene que la media
+del proceso $\bar{\bar{x}}$ es -0.047 y la desviación $\hat{\sigma}$ es
+0.977
+
+\subsection{Literal d}
+
+Para calcular $\widehat{C_{pk}}$ se conoce la siguiente expresión:
+
+$$
+\widehat{C_{pk}} = min(\frac{LES-\hat{\mu}}{3\hat{\sigma}}, \frac{\hat{\mu}-LEI}{3\hat{\sigma}})
+$$
+
+Sabiendo que LEI = -0.05, LES = 0.05, $\hat{\mu}$ = $\bar{\bar{x}}$ =
+-0.047 y $\hat{\sigma}$ = 0.977, se llega a que:
+
+$$
+\widehat{C_{pk}} = min(0.1866, 0.1546) = 0.1546
+$$ De este índice se puede afirmar que el proceso es deficiente si lo
+que se busca es cumplir con una tolerancia de 0.5 unidades, dado que el
+índice de capacidad real se encuentra por debajo de 1. Este resultado es
+congruente con la gráfica de control de $\bar{x}$, puesto que los
+límites de control para el proceso de llenado de las botellas se
+encuetran por fuera de los límites de especificación y por lo tanto, el
+resultado obtenido en la expresión de arriba es congruente con la
+gráfica de control final.
+
+Por otro lado, se tiene que un IC al 95% para $\widehat{C_{pk}}$ está
+dado por:
+
+$$
+\widehat{C_{pk}}[1\pm Z_{0.025}\sqrt{\frac{1}{9n\widehat{C_{pk}}}+\frac{1}{2n-1}}]
+$$
+
+Y con esto, sabiendo que n = 9, se tiene que:
+
+$$
+\widehat{C_{pk}} \in (0.0418, 0.2674)
+$$ Es decir, con una significancia usual el valor verdadero $C_{pk}$ se
+encuentra contenido en el anterior intervalor.
+
+\subsection{Literal e}
+
+\subsection{Literal f}
+
+Se toman 15 nuevas muestras del proceso de llenado de botellas. Se
+quiere entonces incurrir en la fase II del proceso, analizando estos
+nuevos datos en los gráficos de control obtenidos anteriormente. Los
+gráficos de control para $\bar{x}$ y S incluyendo esta nueva muestra se
+presentan como sigue:
+
+```{r fase II punto 2, fig.cap="Gráficos de control fase II", fig.pos='H', fig.height=3.2}
+bd2f <- read.table("bdp2f.txt", header = T)
+
+sdqcc2f <- qcc(bd[-c(7,20),-1], type="S",newdata=bd2f, plot = F)
+
+meanqcc2f <- qcc(bd[-c(7,20),-1], type="xbar", newdata=bd2f,std.dev = "UWAVE-SD", plot = F)
+
+sdqccdf2 <- data.frame(Subgrupo=1:24, Desviaciones=sdqcc2$statistics)
+
+p1 <- ggplot(sdqccdf2, aes(Subgrupo, Desviaciones)) +
+  geom_point() +
+  geom_path()+
+  geom_point(data = data.frame(Subgrupo=24:28,
+                               Desviaciones=sdqcc2f$newstats[1:5]),
+             colour = "black")+
+  geom_path(data = data.frame(Subgrupo=23:28,
+                               Desviaciones=c(sdqcc2$statistics[23],
+                                              sdqcc2f$newstats[1:5])))+
+  geom_point(data = data.frame(Subgrupo=29:38,
+                               Desviaciones=sdqcc2f$newstats[6:15]),
+             colour = "red")+ 
+  geom_path(data = data.frame(Subgrupo=28:38,
+                               Desviaciones=sdqcc2f$newstats[5:15]))+
+  geom_line()+
+  geom_vline(xintercept = 23.5, linetype="dashed")+
+  geom_hline(yintercept=sdqcc2$limits[1], linetype="dashed",size=1)+
+  geom_hline(yintercept=sdqcc2$limits[2], linetype="dashed",size=1)+
+  geom_hline(yintercept=sdqcc2$center, linetype="dashed",size=1)+
+  geom_label(aes(x = 38, y = sdqcc2$limits[1], label = "LCL"))+
+  geom_label(aes(x = 38, y = sdqcc2$limits[2], label = "UCL"))+
+  geom_label(aes(x = 38, y = sdqcc2$center, label = "CL"))+
+  geom_label(aes(x = 0, y = sdqcc2$limits[1], label = round(sdqcc2$limits[1],3)))+
+  geom_label(aes(x = 0, y = sdqcc2$limits[2], label = round(sdqcc2$limits[2],3)))+
+  geom_label(aes(x = 0, y = sdqcc2$center, label = round(sdqcc2$center,3)))+
+  labs(title="Gráfico de control para desviaciones")+
+  theme_bw()+
+  theme(plot.title = element_text(hjust = 0.5))
+
+meanqccdf2 <- data.frame(Subgrupo=1:23, Promedios=meanqcc2$statistics)
+
+p2 <- ggplot(meanqccdf2, aes(Subgrupo, Promedios)) +
+  geom_point() +
+  geom_path()+
+  geom_point(data = data.frame(Subgrupo=24:26,
+                               Promedios=meanqcc2f$newstats[1:3]),
+             colour = "black")+
+  geom_path(data = data.frame(Subgrupo=23:26,
+                              Promedios=c(meanqcc2$statistics[23],
+                                          meanqcc2f$newstats[1:3])))+
+  geom_point(data = data.frame(Subgrupo=27, Promedios=meanqcc2f$newstats[4]),
+             colour = "red")+
+  geom_path(data = data.frame(Subgrupo = 26:27,
+                              Promedios = meanqcc2f$newstats[3:4]))+
+  geom_point(data = data.frame(Subgrupo=28, Promedios=meanqcc2f$newstats[5]),
+             colour = "black")+
+  geom_path(data = data.frame(Subgrupo = 27:28,
+                              Promedios = meanqcc2f$newstats[4:5]))+
+  geom_point(data = data.frame(Subgrupo=29:38,
+                               Promedios=meanqcc2f$newstats[6:15]),
+             colour = "red")+ 
+  geom_path(data = data.frame(Subgrupo=28:38,
+                              Promedios=meanqcc2f$newstats[5:15]))+
+  geom_line()+
+  geom_vline(xintercept = 23.5, linetype="dashed")+
+  geom_hline(yintercept=meanqcc2$limits[1], linetype="dashed",size=1)+
+  geom_hline(yintercept=meanqcc2$limits[2], linetype="dashed",size=1)+
+  geom_hline(yintercept=meanqcc2$center, linetype="dashed",size=1)+
+  geom_label(aes(x = 38, y = meanqcc2$limits[1], label = "LCL"))+
+  geom_label(aes(x = 38, y = meanqcc2$limits[2], label = "UCL"))+
+  geom_label(aes(x = 38, y = meanqcc2$center, label = "CL"))+
+  geom_label(aes(x = 0, y = meanqcc2$limits[1], label = round(meanqcc2$limits[1],3)))+
+  geom_label(aes(x = 0, y = meanqcc2$limits[2], label = round(meanqcc2$limits[2],3)))+
+  geom_label(aes(x = 0, y = meanqcc2$center, label = round(meanqcc2$center,3)))+
+  labs(title="Gráfico de control para promedios")+
+  theme_bw()+
+  theme(plot.title = element_text(hjust = 0.5))
+
+p1
+p2
+```
+
+De este par de gráficos de control, se aprecian graves problemas en la
+desviación del proceso y un desplazamiento importante de la media.
+Específicamente, podría hablarse de alguna novedad importante en los
+factores asignables que componen el proceso de llenado de las botellas
+que no se debe pasar por alto.
 
 <!-- Juanjo ------------------------------------------------------ -->
 
