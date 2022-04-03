@@ -360,6 +360,8 @@ botella con una escala codificada. En esta escala, una lectura cero
 corresponde a la altura de llenado correcta. Se analizan 25 muestras de
 tamaño 9. La estructura de los datos se muestra como sigue:
 
+\newpage
+
 ```{r datos punto 2}
 bd <- read.table("bdp2.txt", header = T)
 kable(head(bd), caption = "Primeras 6 muestras de 25",
@@ -618,6 +620,222 @@ que no se debe pasar por alto.
 <!-- Juanjo ------------------------------------------------------ -->
 
 \section{Ejercicio 5}
+
+En una fábrica de producción de crema dental, se tomaron las medidas del 
+peso (en gramos) de una referencia en particular. Cada medida representa el
+peso en gramos de cada tubo después de salir del proceso de llenado. Las
+medidas fueron tomadas por una balanza automatizada que se encuentra justo
+después del proceso de llenado. A continuación se presentan las primeras
+observaciones de la base de datos:
+
+```{r datos-5}
+rm(list = setdiff(ls(), lsf.str()))
+datos5 <- c(2.07, 2.17, 2.17,2.07, 2.12, 2.05, 2.10, 2.07, 2.10, 2.14, 
+            2.12, 2.05, 2.07, 2.12, 2.16, 2.17, 2.14, 2.01, 2.02, 
+            2.10, 2.12, 2.13, 2.16, 2.09, 2.15)
+kable(head(cbind(1:5, datos5), 5), longtable = T, booktabs = T,
+      caption = "Peso del tubo de crema dental", align = "c",
+      col.names = c("Número de la muestra", "Peso"))
+```
+
+\subsection{Prueba de bondad de ajuste a los datos}
+
+Para comenzar, se realiza una prueba de normalidad para garantizar que la
+metología usada sea adecuada a la situación dada, para este caso se usará 
+un gráfico de probabilidad normal como argumento gráfico y la prueba de
+normalidad de Anderson - Darling la cual tiene el siguiente juego de
+hipótesis:
+
+$$
+\begin{cases}
+H_0: X \sim N(\mu, \sigma^2) \\
+H_1: X \nsim N(\mu, \sigma^2) 
+\end{cases}
+$$
+Con $X:$ Peso de la referencia de pasta dental seleccionada.
+
+```{r ad-test5}
+res_ad_test <-
+  "Resultado Anderson - Darling\n A = 0.38012\n Valor-P = 0.3766"
+ggplot(mapping = aes(sample = datos5)) +
+  geom_qq() +
+  geom_qq_line() +
+  labs(x = "Cuantiles teóricos", y = "Cuantiles muestrales", 
+       title = "Gráfico probalidad normal") +
+  geom_label(aes(x = -1.25, y = 2.18, label = res_ad_test)) +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+Gráficamente, no se aprecian desviaciones del supuesto de normalidad debido
+a que la nube de puntos, en general, cae sobre la recta (a excepción del
+punto que se encuentra más a la derecha, el cual es un posible outlier).
+Por otro lado, el valor - p de la prueba de Anderson - Darling es mayor 
+a 0.1 el cual suele ser el nivel de significancia más grande tolerado en la
+práctica por lo que no se rechaza la hipótesis de normalidad de los datos.
+
+\subsection{Gráficos de control para medidas individuales y rangos móviles}
+
+Luego de verificar el supuesto de normalidad de los datos, se realizan los
+gráficos de control para medidas individuales y rangos móviles. Similar al
+caso de muestras de tamaños pequeños, los límites de control para $\bar{x}$
+dependen de la medida de dispersión por lo que se debe asegurar en primera
+instancia que dicha medida este en control.
+
+La medida de dispersión a usar es el rango móvil
+
+$$
+\begin{aligned}
+MR_i &= |x_{i+1} - x_{i}| \\
+\overline{MR} &= \frac{1}{m-1}\sum_{i=1}^{m-1} MR_i
+\end{aligned}
+$$
+
+A continuación se presenta el gráfico de control para el rango móvil
+
+```{r rangos-moviles}
+mri <- cbind(datos5[1:(length(datos5)-1)],
+                     datos5[2:(length(datos5))])
+rango_movil <- qcc(mri, type = "R", plot = F)
+sdcontrolchart(rango_movil) + 
+  labs(title = "Gráfico de Shewart para rangos móviles",
+       y = "Rango móvil")
+```
+En estos gráficos no se juzgan los posibles patrones sistemáticos puesto que
+estos pueden existir debido a la naturaleza del rango móvil, es de mayor
+importancia verificar que no hayan puntos fuera de los límites de control 
+lo cual en esta situación particular se cumple y se concluye que la medida 
+de dispersión está en control. 
+
+Luego de verificar que el rango móvil está en control, se procede con las
+medidas individuales:
+
+```{r medidas-individuales}
+med_ind <- qcc(datos5, type = "xbar.one", plot = F)
+meancontrolchart(med_ind)
+```
+En este caso tampoco existen puntos fuera de los límites de control por lo
+que se puede concluir que el proceso se encuentra en control.
+
+\subsection{Datos adicionales}
+
+Puesto que el proceso se encuentra bajo control, se comienza la fase II para
+comparar nuevas observaciones respecto al estado del proceso bajo control
+
+```{r new-obs}
+# Limites para rango movil
+LCL_mri <- rango_movil$limits[1]
+UCL_mri <- rango_movil$limits[2]
+
+# Limites para medidad individuales
+LCL_med_ind <- med_ind$limits[1]
+UCL_med_ind <- med_ind$limits[2]
+
+# Nuevas observaciones
+new_obs <- c(2.11, 2.11, 2.05, 2.11, 2.17, 2.11, 2.07, 2.16, 2.01,
+             2.35, 2.08, 2.08,2.12, 2.03, 2.14)
+
+# Rangos moviles nuevos
+aux_mri_new <- c(datos5[length(datos5)], new_obs)
+mri_new <- cbind(aux_mri_new[1:(length(aux_mri_new) - 1)],
+                 aux_mri_new[2:length(aux_mri_new)])
+
+# Datos nuevos para rangos moviles
+rango_movil_nuevo <- qcc(mri, type = "R", newdata = mri_new, plot = F)
+
+new_data_mri <- data.frame(MRI = rango_movil_nuevo$statistics,
+                           Type = 
+                             rep("Calibration",
+                                 length(rango_movil_nuevo$statistics))) %>% 
+  rbind(cbind(MRI = rango_movil_nuevo$newstats,
+              Type = rep("New", length(rango_movil_nuevo$newstats)))) %>% 
+  mutate(Status = as.factor(if_else(between(MRI, LCL_mri, UCL_mri),
+                                    "Inside", "Outside")),
+         MRI = round(as.numeric(MRI), 6))
+
+# Datos nuevos para medidas individuales
+med_ind_new <- qcc(datos5, type = "xbar.one", newdata = new_obs, plot = F)
+
+new_data_med <- data.frame(Med_Ind = med_ind_new$statistics,
+                           Type = 
+                             rep("Calibration",
+                                 length(med_ind_new$statistics))) %>% 
+  rbind(cbind(Med_Ind = med_ind_new$newstats,
+              Type = rep("New", length(med_ind_new$newstats)))) %>% 
+  mutate(Status = as.factor(if_else(between(Med_Ind,
+                                            LCL_med_ind, UCL_med_ind),
+                                    "Inside", "Outside")),
+         Med_Ind = round(as.numeric(Med_Ind), 6))
+```
+
+```{r plot-new-obs-mri}
+# Labels para MRI
+aux_lab_mri <- c(as.character(round(c(LCL_mri,
+                                      rango_movil$center, UCL_mri), 3)),
+                 "LCL", "CL", "UCL")
+labs_mri <- data.frame(x = c(rep(-1, 3), rep(41, 3)),
+                       y = rep(c(0, 0.05, 0.15), 2),
+                       text = aux_lab_mri)
+
+# Para rangos moviles
+plot_mri_new <- ggplot(new_data_mri, aes(1:nrow(new_data_mri), MRI)) +
+  geom_line() +
+  geom_point(aes(col = Status), size = 2) +
+  scale_color_manual(values = c("black", "red")) +
+  geom_hline(yintercept = c(LCL_mri, rango_movil$center, UCL_mri), 
+             linetype = "dashed", size = 1) +
+  geom_vline(xintercept = 24.5, linetype = "dashed") +
+  xlim(-1.5, 41) +
+  geom_label(aes(x = x, y = y, label = text), labs_mri) +
+  labs(x = "Subgrupo", y = "Rango móvil",
+       title = "Gráfico de Shewart para rangos móviles") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5), legend.position = "none")
+```
+
+```{r plot-new-obs-med-ind}
+# Labels para Medidas individuales
+aux_lab_med <- c(as.character(round(c(LCL_med_ind,
+                                      med_ind$center, 
+                                      UCL_med_ind), 3)),
+                 "LCL", "CL", "UCL")
+labs_med_ind <- data.frame(x = c(rep(-1, 3), rep(41, 3)),
+                           y = rep(c(LCL_med_ind, 
+                                     med_ind$center,
+                                     UCL_med_ind), 2),
+                           text = aux_lab_med)
+
+# Para medidas individuales
+plot_med_ind <- ggplot(new_data_med, aes(1:nrow(new_data_med), Med_Ind)) +
+  geom_line() +
+  geom_point(aes(col = Status), size = 2) +
+  scale_color_manual(values = c("black", "red")) +
+  geom_hline(yintercept = c(LCL_med_ind, med_ind$center, UCL_med_ind), 
+             linetype = "dashed", size = 1) +
+  geom_vline(xintercept = 24.5, linetype = "dashed") +
+  xlim(-1.5, 41) +
+  geom_label(aes(x = x, y = y, label = text), labs_med_ind) +
+  labs(x = "Subgrupo", y = "Medidas individuales",
+       title = "Gráfico de Shewart para medidas individuales") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5), legend.position = "none")
+
+```
+
+```{r plots-new-obs, fig.height=5.5}
+ggpubr::ggarrange(plot_mri_new, plot_med_ind, nrow = 2, ncol = 1)
+```
+
+Inicialmente, se aprecia que el proceso para el rango móvil se mantiene en
+control hasta cierto momento del tiempo, luego pierde el control por unos
+instantes y finalmente regresa a los límites establecidos, lo cual es señal
+de que dicha perdida de control es debida a causas asignables que lograron
+ser corregidas rápidamente. 
+
+Para las medidas individuales, el proceso solo perdió el control en un
+instante y luego regreso a los límites establecidos, sugiriendo la misma
+observación realizada para los rangos móviles; en dicho instante pudo pasar
+un evento atípico en la planta de producción produciendo un tubo de crema
+dental con más contenido de lo habitual.
 
 <!-- Simon ------------------------------------------------------- -->
 
