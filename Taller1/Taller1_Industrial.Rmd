@@ -123,9 +123,10 @@ que se encuentra muy cerca del límite de decisión. Si bien dicho valor es
 mayor a 0.01, no rechazar $H_0$ es una decisión poco fiable.
 
 Vistos los análisis previos, se considera que la distribución normal no se
-ajusta bien al peso neto del producto blanqueador, sin embargo para fines 
-de ilustrar la metodología de control del proceso se asume que las
-desviaciones del supuesto no son muy graves.
+ajusta bien al peso neto del producto blanqueador, sin embargo la desviación
+no es muy grave (el valor-p es algo polémico) y la metodología es robusta a
+ligeros desvíos de normalidad por lo que se considera pertinente usarla para
+la situación dada.
 
 \subsection{Gráficos de control para $\bar{x}$ y $R$}
 
