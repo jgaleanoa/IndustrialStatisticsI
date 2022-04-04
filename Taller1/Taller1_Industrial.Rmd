@@ -271,6 +271,33 @@ encuentra contenido en el anterior intervalor.
 
 \subsection{Literal e}
 
+Inicialmente se debe calcular la probabilidad de que 2 de 3 puntos consecutivos se encuentren por encima o por debajo de 2 desviaciones estádar respecto a la línea de control central. Dicha probabilidad se calcula como sigue:
+
+$$
+P = P(\bar{x} \geq LC + 2\sigma_{\bar{x}})
+$$
+Estandarizando se obtiene que:
+
+$$
+P = P(Z \geq \frac{LC+2\sigma_{\bar{x}}-LC}{\hat{\sigma}/\sqrt{n}})
+$$
+Sabiendo que $\sigma_{\bar{x}} = \hat{\sigma}/\sqrt{n}$ y simplificando se llega a que:
+
+$$
+P = P(Z \geq 2) = 0.0228
+$$
+Con la anterior probabilidad y teniendo en cuenta que el número de muestras sucesivas que están por encima o por debajo de dos desviaciones estádar configuran un proceso binomial, la probabilidad de un evento fuera de control queda determinada por:
+
+$$
+2\binom{3}{2}P^2(1-P), \text{ Con P = 0.0228}
+$$
+Asi pues, reemplazando P en la expresión anterior se logra que la probabilidad de que 2 de 3 puntos consecutivos estén por fuera de $2\sigma$ y al mismo lado de la línea central de control es 0.00304.
+
+Finalmente, el número promedio de muestras que se deben revisar para encontrar una que esté fuera de control usando esta regla es:
+
+$$
+\frac{1}{0.00304}=328.9474
+$$
 \subsection{Literal f}
 
 Se toman 15 nuevas muestras del proceso de llenado de botellas. Se
