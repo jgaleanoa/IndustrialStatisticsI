@@ -28,6 +28,8 @@ library(kableExtra)
 library(knitr)
 library(tidyverse)
 library(qcc)
+library(latex2exp)
+source("WrappersControl.R", encoding = "UTF-8")
 ```
 
 ```{=tex}
@@ -41,14 +43,312 @@ library(qcc)
 \pagestyle{myheadings}
 \setcounter{page}{3}
 ```
+
 <!-- Juanjo ------------------------------------------------------ -->
 
 \section{Ejercicio 1}
 
-El peso neto (en onzas) de un producto blanqueador en polvova a
-monitorearse con cartas de control $\bar{x}$ y $R$ utilizando un tamaño
-de la muestra de $n = 4$. Se registran datos de 25 muestras. Resuelva
-las siguientes preguntas
+El peso neto (en onzas) de un producto blanqueador en polvo va a
+monitorearse con cartas de control $\bar{x}$ y $R$ utilizando un tamaño de
+la muestra de $n = 4$. Se registran datos de 25 muestras.
+
+```{r datos1}
+datos1 <- read.table("DatosEJ1.txt", header = T) %>% 
+  select(-Numero_de_muestra)
+```
+
+\subsection{Prueba de bondad de ajuste a los datos}
+
+La metodología considerada funciona bajo el supuesto de que los datos
+provienen de una distribución normal, por lo que es muy importante chequear
+dicho supuesto antes de proceder con cálculos. 
+
+```{r hist-ej1, fig.cap="Gráficos para chequeo de normalidad"}
+full_sample <- datos1 %>% 
+  as.matrix() %>% 
+  as.vector() 
+
+qqplot <- ggplot(mapping = aes(sample = full_sample)) +
+  geom_qq() +
+  geom_qq_line() +
+  labs(x = "Cuantiles teóricos", 
+       y = "Cuantiles muestrales",
+       title = "Gráfico de probabilidad normal") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+hist_peso <- ggplot(mapping = aes(x = full_sample)) +
+  geom_histogram(bins = nclass.Sturges(full_sample), 
+                 col = "black", fill = "lightgreen") +
+  labs(x = "Peso neto (oz)", 
+       y = "Frecuencia", 
+       title = "Distribución del peso neto(oz)") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+ggpubr::ggarrange(qqplot, hist_peso, nrow = 1, ncol = 2)
+```
+
+En el gráfico de probabilidad normal se aprecia que hay múltiples unidades
+experimentales que tienen el mismo peso. Aunque los puntos no se desvían
+mucho de la recta, dicho supuesto se ve defectuoso en el histograma puesto
+que se observa asimetría negativa.
+
+Además de los análisis gráficos, se usa la prueba de normalidad de Shapiro
+- Wilk. \newline Sea $X:$ Peso neto de un producto blanqueador en onzas.
+
+\newpage
+
+Se quiere probar
+
+$$
+\begin{cases}
+H_0: X \sim N(\mu, \sigma^2) \\
+H_1: X \nsim N(\mu, \sigma^2) 
+\end{cases}
+$$
+
+Luego de realizar la prueba de normalidad se obtienen los siguientes
+resultados
+
+```{r shapiro-wilk1}
+test_norm <- data.frame(W = 0.9665, pvalue = 0.01201)
+kable(test_norm, longtable = T, booktabs = T, 
+      caption = "Prueba de normalidad", 
+      col.names = c("W", "Valor-p"))
+```
+
+El valor-p es polémico a un nivel de significancia $\alpha = 0.01$ debido a
+que se encuentra muy cerca del límite de decisión. Si bien dicho valor es
+mayor a 0.01, no rechazar $H_0$ es una decisión poco fiable.
+
+Vistos los análisis previos, se considera que la distribución normal no se
+ajusta bien al peso neto del producto blanqueador, sin embargo la desviación
+no es muy grave (el valor-p es algo polémico) y la metodología es robusta a
+ligeros desvíos de normalidad por lo que se considera pertinente usarla para
+la situación dada.
+
+\subsection{Gráficos de control para $\bar{x}$ y $R$}
+
+Inicialmente se debe verificar el gráfico de Shewhart para R puesto que los
+límites de control para $\bar{x}$ dependen de $R$, luego es necesario
+asegurarse que la variabilidad de $R$ este bajo control antes de proceder
+con $\bar{x}$.
+
+$$
+\bar{x} = \frac{1}{n} \sum_{i=1}^{n} x_i \hspace{.2in} \bar{\bar{x}} = \frac{1}{m} \sum_{i=1}^{m} \bar{x}_i \hspace{.2in} \bar{R} = \frac{1}{m} \sum_{i=1}^m R_i
+$$
+
+\begin{table}[H]
+\centering
+\caption{Límites de control para $\bar{x}$ y $R$}
+\begin{tabular}{|l|l|l|l|}
+\hline
+   & LCL & CL & UCL \\ \hline
+$\bar{x}$  & $\bar{\bar{x}} - A_2 \bar{R}$   & $\bar{\bar{x}}$  & $\bar{\bar{x}} + A_2 \bar{R}$   \\ \hline
+$R$ & $\bar{R}D_3$   & $\bar{R}$  & $\bar{R}D_4$ \\ \hline  
+\end{tabular}
+\end{table}
+
+```{r control-R, fig.height=6, fig.width=6}
+control_r1 <- qcc(datos1, type = "R", title= "Gráfico de Shewhart para R",
+                  xlab = "Muestra", ylab = "Rango", plot = F)
+sdcontrolchart(control_r1) +
+  labs(title = "Gráfico de Shewart para R", y = "Rango")
+```
+
+Puesto que ningún punto cae fuera de los límites de control ni tampoco se
+observan patrones sistemáticos en el gráfico, se puede proceder a la
+construcción del diagrama de Shewhart para $\bar{x}$.
+
+```{r control-xbar, fig.height=6, fig.width=6}
+control_xbar1 <- qcc(datos1, type = "xbar", 
+                     title = "Gráfico de Shewhart para el peso promedio",
+                     xlab = "Muestra", ylab = "Peso promedio (oz)", plot = F)
+meancontrolchart(control_xbar1) +
+  labs(title = TeX("Gráfico de Shewart para $\\bar{x}$"), 
+       y = "Peso promedio (oz)")
+```
+
+Similar al caso de $R$, todos los puntos caen dentro de los límites de
+control y no se observan patrones sistemáticos, se puede concluir que el
+proceso está bajo control. 
+
+Para finalizar, se verifica el valor de los límites de control obtenidos en
+R con el paquete `qcc` luego de hacer los cálculos manuales.
+
+```{r calculos-manuales}
+x_doble_bar <- apply(datos1, 1, mean) %>% 
+  mean()
+R_bar <- apply(datos1, 1, function(x) max(x) - min(x)) %>% 
+  mean()
+```
+
+
+$$
+\bar{\bar{x}} = \frac{1}{25} \sum_{i=1}^{25} \bar{x}_i = `r x_doble_bar` \hspace{.2in} \bar{R} = \frac{1}{25} \sum_{i=1}^{25} R_i = 0.464
+$$
+
+**Para $\bar{x}$**
+
+Se tiene que $n = 4$, luego $A_2 = 0.729$ por lo tanto los límites de
+control son
+
+$$
+\begin{aligned}
+\text{UCL} &= `r x_doble_bar` + 0.729 \times `r R_bar`=`r x_doble_bar + 0.729*R_bar` \\
+\text{LCL} &= `r x_doble_bar` - 0.729 \times `r R_bar`=`r x_doble_bar - 0.729*R_bar`
+\end{aligned}
+$$
+estos límites concuerdan con los obtenidos en R.
+
+**Para R**
+
+Nuevamente, debido a $n = 4$ se tiene $D_3 = 0$ y $D_4 = 2.282$, así
+
+$$
+\begin{aligned}
+\text{UCL} &= `r R_bar` \times 2.282 = `r R_bar*2.282` \\
+\text{LCL} &= `r R_bar` \times 0 = 0
+\end{aligned}
+$$
+los cuales también concuerdan con los obtenidos en el lenguaje de programación
+R.
+
+\subsection{Estimación de media y varianza del proceso}
+
+Una vez verificado el control del proceso, resulta de interés estimar los
+parámetros $\mu$ y $\sigma$ de la distribución normal para realizar
+cálculos como lo puede ser, el porcentaje de producto blanqueador cuyo 
+peso neto este fuera de los límites de control.
+
+El estimador de $\mu$ es $\bar{\bar{x}} = 16.239$ el cual fue calculado en
+el inciso anterior. Por otro lado, para la desviación estándar se tiene
+$\hat{\sigma} = \frac{\bar{R}}{d_2}$; en el inciso anterior se llegó a
+$\bar{R} = `r R_bar`$ y además para $n = 4$ se tiene $d_2 = 2.059$
+obteniendo así $\hat{\sigma} = \frac{0.464}{2.059} = `r 0.464/2.059`$.
+
+En resumen
+
+$$
+\hat{\mu} = 16.239 \hspace{.35in} \hat{\sigma} = `r 0.464/2.059`
+$$
+
+\subsection{Porcentaje de defectuosos}
+
+Suponiendo que el fabricante establece como medidas de especificación para
+el peso del producto blanqueador $16 \pm 0.75 \text{ oz}$ el porcentaje de
+defectuosos se puede calcular como 
+$\left[1 - \mathbb{P}(15.25\leq X \leq 16.75)\right] \times 100\%$
+con $X \sim N\left(16.239, \ 0.2253521^2\right)$.
+
+```{r porc-def}
+prob_in <- pnorm(16.75, 16.239, 0.2253521) - pnorm(15.25, 16.239, 0.2253521)
+```
+
+Se puede verificar que $\mathbb{P}(15.25\leq X \leq 16.75) = `r prob_in`$
+por lo que el porcentaje de productos defectuosos es 
+$(1 - `r prob_in`) \times 100\% = `r (1 - prob_in)*100` \%$, es decir, la
+cantidad de producto blanqueador producido cuyo peso será menor a 15.25 o
+mayor a 16.75 oz es aproximadamente el 1.1684 \%.
+
+\subsection{ARL del proceso}
+
+Se define $\alpha: \mathbb{P}(\text{Detectar desplazamiento de media | La media NO se desplazo})$. \newline
+Teniendo en cuenta que el proceso se encuentra en control y además se está
+trabajando con 3 desviaciones estándar (lo cual implica $\alpha = 0.0027$)
+el número de esperado de muestras que se deben inspeccionar hasta encontrar
+una fuera de control es:
+
+$$
+\text{ARL}_0 = \frac{1}{\alpha} = \frac{1}{0.0027} = 370.3704
+$$
+
+
+\subsection{Desplazamiento de media}
+
+Se define $\beta = \mathbb{P}(\text{No detectar el desplazamiento de media | La media se desplazo})$. 
+Si la media del proceso se desplaza a $\mu_1 = 16.2$ y la desviación
+estándar permanece constante, entonces:
+
+$$
+\bar{x} \sim N\left(16.2, \frac{0.2253521^2}{4}\right)
+$$
+
+```{r beta}
+sigma1 <- R_bar/2.059
+beta1 <- pnorm(16.577256, 16.2, sigma1/2) - pnorm(15.900744, 16.2, sigma1/2)
+first_sample <- beta1^(1 - 1)*(1 - beta1)
+```
+
+
+$$
+\begin{aligned}
+\beta &= \mathbb{P}(15.900744 \leq \bar{x} \leq 16.577256 \ | \ \hat{\mu} = 16.2, \ \hat{\sigma} = 0.2253521) \\
+&= `r beta1`
+\end{aligned} 
+$$
+Sea $Y: \text{Número de muestras revisadas hasta detectar cambio en la media del proceso}$
+
+$$
+\begin{aligned}
+&Y \sim Geo(1 - \beta) \Leftrightarrow p_Y(y) = \beta^{y-1}(1 - \beta) \ \text{con} \ \beta = `r beta1` \\
+&\mathbb{P}(Y = 1) = `r 1-beta1`
+\end{aligned}
+$$
+
+El cual es un resultado razonable teniendo en cuenta que el desplazamiento
+de la media fue pequeño numéricamente hablando (0.039 oz).
+
+\subsection{Muestras necesarias para detectar cambios}
+
+Para este caso se quiere calcular el $ARL_1$ puesto que
+se esta suponiendo un proceso fuera de control por una diferencia de 0.039
+respecto al promedio del proceso cuando está en control.
+
+$ARL_1 = \frac{1}{1-\beta} = \frac{1}{1-`r beta1`} = `r 1/(1 - beta1)`$, es
+decir, el número esperado de muestras a revisar hasta encontrar un cambio en
+el peso del producto blanqueador de 0.039 oz es aproximadamente 229.27
+muestras.
+
+\subsection{Curva de operación característica}
+
+Para finalizar, se gráfica la curva de operación característica (OC), la
+cual ilustra como disminuye $\beta$ a medida que el desplazamiento de la
+media aumenta para diferentes tamaños de muestra.
+
+```{r aux_chunk, include=F}
+qcc_curve <- oc.curves(control_xbar1, n = 5*1:4)
+```
+
+```{r oc_curve, warning=F}
+oc_data <- matrix(qcc_curve, ncol = 1) %>% 
+  cbind(n = rep(5*1:4, each = nrow(qcc_curve)),
+        beta = as.numeric(rownames(qcc_curve))) %>% 
+  as.data.frame() %>% 
+  mutate(n = as.factor(n))
+colnames(oc_data) <- c("beta", "n", "k")
+
+ggplot(oc_data, aes(k, beta)) +
+  geom_line(aes(color = n), size = 0.75) +
+  xlim(0, 3) +
+  labs(title = "Curva de operación característica",
+       y = TeX("$beta$")) +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+* Cuando el tamaño de muestra aumenta la probabilidad de no detectar el
+cambio cuando hay desplazamiento de media, disminuye
+* La potencia $(1 - \beta)$ para detectar cambios en el proceso comienza a
+aumentar cuando el desplazamiento es de aproximadamente 0.5 desviaciones
+estándar.
+* Para desplazamientos de aproximadamente 1.5 desviaciones estándar los
+valores de $\beta$ son muy cercanos a cero para $n \in \{10,15,20\}$, sin
+embargo dicho tamaños de muestra ya se pueden considerar grandes por lo que
+no sería adecuado usar el rango como medida de dispersión.
+* Para $n=5$ los valores de $\beta$ tienden a cero para valores de $k$ un
+poco mayores a 2, alcanzando el 0 aproximadamente en $k=2.5$
 
 <!-- Gaviria ----------------------------------------------------- -->
 
@@ -60,6 +360,8 @@ boca de la botella y comparando la altura del líquido en el cuello de la
 botella con una escala codificada. En esta escala, una lectura cero
 corresponde a la altura de llenado correcta. Se analizan 25 muestras de
 tamaño 9. La estructura de los datos se muestra como sigue:
+
+\newpage
 
 ```{r datos punto 2}
 bd <- read.table("bdp2.txt", header = T)
@@ -101,56 +403,6 @@ una distribución normal.
 Para verificar si el proceso de llenado de las botellas está controlado,
 se puede recurrir a las gráficas de control $\bar{x}$ y S ya que en este
 caso, el tamaño de muestra es moderadamente grande.
-
-```{r wrappers para graficos de control}
-sdcontrolchart <- function(sdqcc){
-  #sdqcc es un objeto qcc para la desviacion
-  sdqccdf <- data.frame(Subgrupo = 1:length(sdqcc$statistics), 
-                      Desviaciones = sdqcc$statistics)
-
-ggplot(sdqccdf, aes(Subgrupo, Desviaciones)) +
-  geom_point() +
-  geom_point(data = data.frame(Subgrupo = sdqcc$violations$beyond.limits, 
-             Desviaciones=sdqccdf$Desviaciones[sdqcc$violations$beyond.limits]),                   colour = "red", size = 2)+
-  geom_path()+
-  geom_hline(yintercept=sdqcc$limits[1], linetype="dashed",size=1)+
-  geom_hline(yintercept=sdqcc$limits[2], linetype="dashed",size=1)+
-  geom_hline(yintercept=sdqcc$center, linetype="dashed",size=1)+
-  geom_label(aes(x = 25, y = sdqcc$limits[1], label = "LCL"))+
-  geom_label(aes(x = 25, y = sdqcc$limits[2], label = "UCL"))+
-  geom_label(aes(x = 25, y = sdqcc$center, label = "CL"))+
-  geom_label(aes(x = 0, y = sdqcc$limits[1], label = round(sdqcc$limits[1],3)))+
-  geom_label(aes(x = 0, y = sdqcc$limits[2], label = round(sdqcc$limits[2],3)))+
-  geom_label(aes(x = 0, y = sdqcc$center, label = round(sdqcc$center,3)))+
-  labs(title="Gráfico de control para desviaciones")+
-  theme_bw()+
-  theme(plot.title = element_text(hjust = 0.5))
-}
-#------------------------------------------------------------------
-
-meancontrolchart <- function(meanqcc){
-  #meanqcc es un objeto qcc después de depurar
-  meanqccdf <- data.frame(Subgrupo = 1:length(meanqcc$statistics), 
-                        Promedios = meanqcc$statistics)
-ggplot(meanqccdf, aes(Subgrupo, Promedios)) +
-  geom_point() +
-  geom_point(data = data.frame(Subgrupo = meanqcc$violations$beyond.limits,
-            Promedios = meanqccdf$Promedios[meanqcc$violations$beyond.limits]),                   colour = "red", size = 2)+
-  geom_path()+
-  geom_hline(yintercept=meanqcc$limits[1], linetype="dashed",size=1)+
-  geom_hline(yintercept=meanqcc$limits[2], linetype="dashed",size=1)+
-  geom_hline(yintercept=meanqcc$center, linetype="dashed",size=1)+
-  geom_label(aes(x = 25, y = meanqcc$limits[1], label = "LCL"))+
-  geom_label(aes(x = 25, y = meanqcc$limits[2], label = "UCL"))+
-  geom_label(aes(x = 25, y = meanqcc$center, label = "CL"))+
-  geom_label(aes(x = 0, y = meanqcc$limits[1], label = round(meanqcc$limits[1],3)))+
-  geom_label(aes(x = 0, y = meanqcc$limits[2], label = round(meanqcc$limits[2],3)))+
-  geom_label(aes(x = 0, y = meanqcc$center, label = round(meanqcc$center,3)))+
-  labs(title="Gráfico de control para promedios")+
-  theme_bw()+
-  theme(plot.title = element_text(hjust = 0.5))
-}
-```
 
 Así pues, inicialmente se debe verificar que la desviación del proceso
 está en control, y para esta causa se plantea el siguiente gráfico de
@@ -396,6 +648,222 @@ que no se debe pasar por alto.
 <!-- Juanjo ------------------------------------------------------ -->
 
 \section{Ejercicio 5}
+
+En una fábrica de producción de crema dental, se tomaron las medidas del 
+peso (en gramos) de una referencia en particular. Cada medida representa el
+peso en gramos de cada tubo después de salir del proceso de llenado. Las
+medidas fueron tomadas por una balanza automatizada que se encuentra justo
+después del proceso de llenado. A continuación se presentan las primeras
+observaciones de la base de datos:
+
+```{r datos-5}
+rm(list = setdiff(ls(), lsf.str()))
+datos5 <- c(2.07, 2.17, 2.17,2.07, 2.12, 2.05, 2.10, 2.07, 2.10, 2.14, 
+            2.12, 2.05, 2.07, 2.12, 2.16, 2.17, 2.14, 2.01, 2.02, 
+            2.10, 2.12, 2.13, 2.16, 2.09, 2.15)
+kable(head(cbind(1:5, datos5), 5), longtable = T, booktabs = T,
+      caption = "Peso del tubo de crema dental", align = "c",
+      col.names = c("Número de la muestra", "Peso"))
+```
+
+\subsection{Prueba de bondad de ajuste a los datos}
+
+Para comenzar, se realiza una prueba de normalidad para garantizar que la
+metología usada sea adecuada a la situación dada, para este caso se usará 
+un gráfico de probabilidad normal como argumento gráfico y la prueba de
+normalidad de Anderson - Darling la cual tiene el siguiente juego de
+hipótesis:
+
+$$
+\begin{cases}
+H_0: X \sim N(\mu, \sigma^2) \\
+H_1: X \nsim N(\mu, \sigma^2) 
+\end{cases}
+$$
+Con $X:$ Peso de la referencia de pasta dental seleccionada.
+
+```{r ad-test5}
+res_ad_test <-
+  "Resultado Anderson - Darling\n A = 0.38012\n Valor-P = 0.3766"
+ggplot(mapping = aes(sample = datos5)) +
+  geom_qq() +
+  geom_qq_line() +
+  labs(x = "Cuantiles teóricos", y = "Cuantiles muestrales", 
+       title = "Gráfico probalidad normal") +
+  geom_label(aes(x = -1.25, y = 2.18, label = res_ad_test)) +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+Gráficamente, no se aprecian desviaciones del supuesto de normalidad debido
+a que la nube de puntos, en general, cae sobre la recta (a excepción del
+punto que se encuentra más a la derecha, el cual es un posible outlier).
+Por otro lado, el valor - p de la prueba de Anderson - Darling es mayor 
+a 0.1 el cual suele ser el nivel de significancia más grande tolerado en la
+práctica por lo que no se rechaza la hipótesis de normalidad de los datos.
+
+\subsection{Gráficos de control para medidas individuales y rangos móviles}
+
+Luego de verificar el supuesto de normalidad de los datos, se realizan los
+gráficos de control para medidas individuales y rangos móviles. Similar al
+caso de muestras de tamaños pequeños, los límites de control para $\bar{x}$
+dependen de la medida de dispersión por lo que se debe asegurar en primera
+instancia que dicha medida este en control.
+
+La medida de dispersión a usar es el rango móvil
+
+$$
+\begin{aligned}
+MR_i &= |x_{i+1} - x_{i}| \\
+\overline{MR} &= \frac{1}{m-1}\sum_{i=1}^{m-1} MR_i
+\end{aligned}
+$$
+
+A continuación se presenta el gráfico de control para el rango móvil
+
+```{r rangos-moviles}
+mri <- cbind(datos5[1:(length(datos5)-1)],
+                     datos5[2:(length(datos5))])
+rango_movil <- qcc(mri, type = "R", plot = F)
+sdcontrolchart(rango_movil) + 
+  labs(title = "Gráfico de Shewart para rangos móviles",
+       y = "Rango móvil")
+```
+En estos gráficos no se juzgan los posibles patrones sistemáticos puesto que
+estos pueden existir debido a la naturaleza del rango móvil, es de mayor
+importancia verificar que no hayan puntos fuera de los límites de control 
+lo cual en esta situación particular se cumple y se concluye que la medida 
+de dispersión está en control. 
+
+Luego de verificar que el rango móvil está en control, se procede con las
+medidas individuales:
+
+```{r medidas-individuales}
+med_ind <- qcc(datos5, type = "xbar.one", plot = F)
+meancontrolchart(med_ind)
+```
+En este caso tampoco existen puntos fuera de los límites de control por lo
+que se puede concluir que el proceso se encuentra en control.
+
+\subsection{Datos adicionales}
+
+Puesto que el proceso se encuentra bajo control, se comienza la fase II para
+comparar nuevas observaciones respecto al estado del proceso bajo control
+
+```{r new-obs}
+# Limites para rango movil
+LCL_mri <- rango_movil$limits[1]
+UCL_mri <- rango_movil$limits[2]
+
+# Limites para medidad individuales
+LCL_med_ind <- med_ind$limits[1]
+UCL_med_ind <- med_ind$limits[2]
+
+# Nuevas observaciones
+new_obs <- c(2.11, 2.11, 2.05, 2.11, 2.17, 2.11, 2.07, 2.16, 2.01,
+             2.35, 2.08, 2.08,2.12, 2.03, 2.14)
+
+# Rangos moviles nuevos
+aux_mri_new <- c(datos5[length(datos5)], new_obs)
+mri_new <- cbind(aux_mri_new[1:(length(aux_mri_new) - 1)],
+                 aux_mri_new[2:length(aux_mri_new)])
+
+# Datos nuevos para rangos moviles
+rango_movil_nuevo <- qcc(mri, type = "R", newdata = mri_new, plot = F)
+
+new_data_mri <- data.frame(MRI = rango_movil_nuevo$statistics,
+                           Type = 
+                             rep("Calibration",
+                                 length(rango_movil_nuevo$statistics))) %>% 
+  rbind(cbind(MRI = rango_movil_nuevo$newstats,
+              Type = rep("New", length(rango_movil_nuevo$newstats)))) %>% 
+  mutate(Status = as.factor(if_else(between(MRI, LCL_mri, UCL_mri),
+                                    "Inside", "Outside")),
+         MRI = round(as.numeric(MRI), 6))
+
+# Datos nuevos para medidas individuales
+med_ind_new <- qcc(datos5, type = "xbar.one", newdata = new_obs, plot = F)
+
+new_data_med <- data.frame(Med_Ind = med_ind_new$statistics,
+                           Type = 
+                             rep("Calibration",
+                                 length(med_ind_new$statistics))) %>% 
+  rbind(cbind(Med_Ind = med_ind_new$newstats,
+              Type = rep("New", length(med_ind_new$newstats)))) %>% 
+  mutate(Status = as.factor(if_else(between(Med_Ind,
+                                            LCL_med_ind, UCL_med_ind),
+                                    "Inside", "Outside")),
+         Med_Ind = round(as.numeric(Med_Ind), 6))
+```
+
+```{r plot-new-obs-mri}
+# Labels para MRI
+aux_lab_mri <- c(as.character(round(c(LCL_mri,
+                                      rango_movil$center, UCL_mri), 3)),
+                 "LCL", "CL", "UCL")
+labs_mri <- data.frame(x = c(rep(-1, 3), rep(41, 3)),
+                       y = rep(c(0, 0.05, 0.15), 2),
+                       text = aux_lab_mri)
+
+# Para rangos moviles
+plot_mri_new <- ggplot(new_data_mri, aes(1:nrow(new_data_mri), MRI)) +
+  geom_line() +
+  geom_point(aes(col = Status), size = 2) +
+  scale_color_manual(values = c("black", "red")) +
+  geom_hline(yintercept = c(LCL_mri, rango_movil$center, UCL_mri), 
+             linetype = "dashed", size = 1) +
+  geom_vline(xintercept = 24.5, linetype = "dashed") +
+  xlim(-1.5, 41) +
+  geom_label(aes(x = x, y = y, label = text), labs_mri) +
+  labs(x = "Subgrupo", y = "Rango móvil",
+       title = "Gráfico de Shewart para rangos móviles") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5), legend.position = "none")
+```
+
+```{r plot-new-obs-med-ind}
+# Labels para Medidas individuales
+aux_lab_med <- c(as.character(round(c(LCL_med_ind,
+                                      med_ind$center, 
+                                      UCL_med_ind), 3)),
+                 "LCL", "CL", "UCL")
+labs_med_ind <- data.frame(x = c(rep(-1, 3), rep(41, 3)),
+                           y = rep(c(LCL_med_ind, 
+                                     med_ind$center,
+                                     UCL_med_ind), 2),
+                           text = aux_lab_med)
+
+# Para medidas individuales
+plot_med_ind <- ggplot(new_data_med, aes(1:nrow(new_data_med), Med_Ind)) +
+  geom_line() +
+  geom_point(aes(col = Status), size = 2) +
+  scale_color_manual(values = c("black", "red")) +
+  geom_hline(yintercept = c(LCL_med_ind, med_ind$center, UCL_med_ind), 
+             linetype = "dashed", size = 1) +
+  geom_vline(xintercept = 24.5, linetype = "dashed") +
+  xlim(-1.5, 41) +
+  geom_label(aes(x = x, y = y, label = text), labs_med_ind) +
+  labs(x = "Subgrupo", y = "Medidas individuales",
+       title = "Gráfico de Shewart para medidas individuales") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5), legend.position = "none")
+
+```
+
+```{r plots-new-obs, fig.height=5.5}
+ggpubr::ggarrange(plot_mri_new, plot_med_ind, nrow = 2, ncol = 1)
+```
+
+Inicialmente, se aprecia que el proceso para el rango móvil se mantiene en
+control hasta cierto momento del tiempo, luego pierde el control por unos
+instantes y finalmente regresa a los límites establecidos, lo cual es señal
+de que dicha perdida de control es debida a causas asignables que lograron
+ser corregidas rápidamente. 
+
+Para las medidas individuales, el proceso solo perdió el control en un
+instante y luego regreso a los límites establecidos, sugiriendo la misma
+observación realizada para los rangos móviles; en dicho instante pudo pasar
+un evento atípico en la planta de producción produciendo un tubo de crema
+dental con más contenido de lo habitual.
 
 <!-- Simon ------------------------------------------------------- -->
 
