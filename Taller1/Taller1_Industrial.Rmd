@@ -30,18 +30,22 @@ library(tidyverse)
 library(qcc)
 library(latex2exp)
 source("WrappersControl.R", encoding = "UTF-8")
+source("customPlots.R", encoding = "UTF-8")
 ```
 
 ```{=tex}
 \input{titlepage}
 \thispagestyle{empty}
 \tableofcontents
-```
 \newpage
+\thispagestyle{empty}
+\listoffigures
+\newpage
+```
 
 ```{=tex}
 \pagestyle{myheadings}
-\setcounter{page}{3}
+\setcounter{page}{4}
 ```
 
 <!-- Juanjo ------------------------------------------------------ -->
@@ -868,3 +872,111 @@ dental con más contenido de lo habitual.
 <!-- Simon ------------------------------------------------------- -->
 
 \section{Ejercicio 6}
+
+Según [1], se tiene el siguiente intervalo de confianza para $S^2$
+$$\left(\frac{\overline{\rm s}^2}{n-1}\chi_{1 - \alpha/2,n-1}^{2}\ , \ \frac{\overline{\rm s}^2}{n-1}\chi_{\alpha/2,n-1}^{2}\right)$$
+donde los límites superior e inferior de dicho intervalo, corresponden al UCL y al LCL de la gráfica de control de $s^2$ respectivamente, además, la línea central corresponde
+a $\overline{\rm s}^2$.
+
+Luego, se usa como alternativa tomar raiz tanto a ambos extremos del intervalo
+como a la línes central obteniendo el lo siguiente para la gráfica de control de $s$.
+
+$$
+\begin{cases}
+\begin{aligned}
+\text{UCL} &= \sqrt{\frac{\overline{\rm s}^2}{n-1}\chi_{\alpha/2,n-1}^{2}} \\
+\text{Línea central} &= \overline{\rm s} \\
+\text{LCL} &= \sqrt{\frac{\overline{\rm s}^2}{n-1}\chi_{1-\alpha/2,n-1}^{2}} 
+\end{aligned}
+\end{cases}
+$$
+
+Dicho esto y tomando un nivel de significancia $\alpha = 0.05$, se procede a realizar
+el gráfico de control para $s$ con los datos proporcionados para el desarrollo del
+ejercicio 2.
+
+```{r first, fig.cap="Primera gráfica de control para s"}
+bd <- read.table("bdp2.txt", header = T)
+pasoUno <- sgraph(bd)
+pasoUnoData <- pasoUno$data %>% 
+  filter(out == "Dentro") %>% 
+  select(-out)
+pasoUno$plot
+```
+
+De esta gráfica se puede observar un total de 8 muestras cuya desviación se
+encuentra por fuera de los límites de control, cabe resaltar que los límites de 
+confianza se encuentran mucho más cerca de la línea central que en la Figura 3, donde
+se puede apreciar que solo un punto se sale de dichos límites, mientras que acá
+ocho puntos presentan este comportamiento.
+
+Se procede a retirar las muestras para las cuales la estimación de la desviación
+estándar no es interior a las bandas de confianza y se genera nuevamente el gráfico
+de control.
+
+```{r second, fig.cap="Retirando muestras por primera vez"}
+bd <- bd %>% 
+  filter(Muestra %in% pasoUnoData$Muestra)
+pasoDos <- sgraph(bd)
+pasoDos$plot
+```
+
+Ahora, se tiene que la desviación se encuentra en control, presentando el mismo 
+comportamiento que se había descrito respecto a la amplitud en la UCL y LCL
+al compararlos con los obtenidos en la Figura 4, además, se tiene un valor
+relativamente similar para la línea central en esta figura respecto a la Figura 4.
+
+Llegados a este punto, es hora de verificar que la media muestral esté en control,
+sin embargo antes de realizar dicha tarea es necesario hacer la aclaración de que
+no se usará el enfoque usual de las tres desviaciones estándar, si no que se usará
+nuevamente el nivel de significancia dado para ser consistentes en el análisis; esto
+teniendo en cuenta que $\overline{\rm x}$ cuenta con los siguientes
+elementos en su gráfica de control.
+
+$$
+\begin{cases}
+\begin{aligned}
+\text{UCL} &= \overline{\rm \overline{\rm x}} + z_{\alpha/2}\frac{\overline{\rm s}}{\sqrt{n}} \\
+\text{Línea central} &= \overline{\rm \overline{\rm x}} \\
+\text{LCL} &= \overline{\rm \overline{\rm x}} - z_{\alpha/2}\frac{\overline{\rm s}}{\sqrt{n}}
+\end{aligned}
+\end{cases}
+$$
+
+```{r third, fig.cap="Gráfico de control para la media muestral"}
+pasoTres <- xbargraph(bd, pasoDos$sbar)
+pasoTresData <- pasoTres$data %>% 
+  filter(out == "Dentro") %>% 
+  select(-out)
+pasoTres$plot
+```
+
+Ahora, se puede detectar la existencia de dos subgrupos que no se residen en 
+el interior de los límites de control, evento que no ocurrió en la Figura 6, asimismo,
+debido a que el nivel de significancia usado era mayor que 0.0027, era de esperarse
+límites más estrechos.
+
+Luego de depurar los subgrupos se obtuvo el siguiente resultado.
+
+```{r forth, fig.cap="Depuración de subgrupos para la media muestral"}
+bd <- bd %>% 
+  filter(Muestra %in% pasoTresData$Muestra)
+pasoCuatro <- xbargraph(bd, pasoDos$sbar)
+pasoCuatro$plot
+```
+
+Analizando a detalle se puede observar que se da culmen a la Fase I, detectando
+en primera instancia que la varianza del proceso se encontraba fuera de control gracias
+a ocho subgrupos, luego de eliminar dichas observaciones se logró llevar a control
+la desviación del proceso. Posteriormente, se encontró que los subgrupos 3, 13 y 20
+hacían que la media muestral se encontrara fuera de control, sin embargo luego
+de descartar dichos datos, se llegó a que el proceso estaba finalmente en control, 
+teniendo una media de -0.057 y una desviación estándar de 0.952.
+
+Para dar culmen, cabe resaltar que las estimaciones de la desviación y la media 
+son numéricamente similares a las obtenidas usando la metodología del 
+ejercicio 2, sin embargo dado el contexto del volumen de llenado de las botellas 
+estas diferencias numéricas podrían resultar en un problema para el ente
+encargado de dicho proceso, por lo que se tiene que es de vital importancia
+la adecuada selección de la metodología que va a ser usada a la hora
+de efectuar el análisis respecto al estado del proceso.
