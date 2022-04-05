@@ -20,10 +20,12 @@ language: "es"
 editor_options: 
   markdown: 
     wrap: 72
+bibliography: citas.bib
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = F, fig.align = "center")
+knitr::opts_chunk$set(echo = F, fig.align = "center",
+                      fig.height = 3.2, fig.pos = "H")
 library(kableExtra)
 library(knitr)
 library(tidyverse)
@@ -86,7 +88,7 @@ hist_peso <- ggplot(mapping = aes(x = full_sample)) +
                  col = "black", fill = "lightgreen") +
   labs(x = "Peso neto (oz)", 
        y = "Frecuencia", 
-       title = "Distribución del peso neto(oz)") +
+       title = "Distribución del peso neto (oz)") +
   theme_bw() +
   theme(plot.title = element_text(hjust = 0.5))
 
@@ -154,7 +156,7 @@ $R$ & $\bar{R}D_3$   & $\bar{R}$  & $\bar{R}D_4$ \\ \hline
 \end{tabular}
 \end{table}
 
-```{r control-R, fig.height=6, fig.width=6}
+```{r control-R, fig.height=3.2}
 control_r1 <- qcc(datos1, type = "R", title= "Gráfico de Shewhart para R",
                   xlab = "Muestra", ylab = "Rango", plot = F)
 sdcontrolchart(control_r1) +
@@ -165,7 +167,7 @@ Puesto que ningún punto cae fuera de los límites de control ni tampoco se
 observan patrones sistemáticos en el gráfico, se puede proceder a la
 construcción del diagrama de Shewhart para $\bar{x}$.
 
-```{r control-xbar, fig.height=6, fig.width=6}
+```{r control-xbar, fig.height=3.2}
 control_xbar1 <- qcc(datos1, type = "xbar", 
                      title = "Gráfico de Shewhart para el peso promedio",
                      xlab = "Muestra", ylab = "Peso promedio (oz)", plot = F)
@@ -308,7 +310,7 @@ de la media fue pequeño numéricamente hablando (0.039 oz).
 
 Para este caso se quiere calcular el $ARL_1$ puesto que
 se esta suponiendo un proceso fuera de control por una diferencia de 0.039
-respecto al promedio del proceso cuando está en control.
+oz respecto al promedio del proceso cuando está en control.
 
 $ARL_1 = \frac{1}{1-\beta} = \frac{1}{1-`r beta1`} = `r 1/(1 - beta1)`$, es
 decir, el número esperado de muestras a revisar hasta encontrar un cambio en
@@ -349,13 +351,14 @@ aumentar cuando el desplazamiento es de aproximadamente 0.5 desviaciones
 estándar.
 * Para desplazamientos de aproximadamente 1.5 desviaciones estándar los
 valores de $\beta$ son muy cercanos a cero para $n \in \{10,15,20\}$, sin
-embargo dicho tamaños de muestra ya se pueden considerar grandes por lo que
+embargo dichos tamaños de muestra ya se pueden considerar grandes por lo que
 no sería adecuado usar el rango como medida de dispersión.
 * Para $n=5$ los valores de $\beta$ tienden a cero para valores de $k$ un
 poco mayores a 2, alcanzando el 0 aproximadamente en $k=2.5$
 
 <!-- Gaviria ----------------------------------------------------- -->
 
+\newpage
 \section{Ejercicio 2}
 
 El volumen de llenado de las botellas de refresco es una característica
@@ -365,14 +368,16 @@ botella con una escala codificada. En esta escala, una lectura cero
 corresponde a la altura de llenado correcta. Se analizan 25 muestras de
 tamaño 9. La estructura de los datos se muestra como sigue:
 
-\newpage
-
 ```{r datos punto 2}
 bd <- read.table("bdp2.txt", header = T)
-kable(head(bd), caption = "Primeras 6 muestras de 25",
+kable(head(bd, 5), caption = "Primeras 5 muestras de 25",
       align = 'c',
       longtable = T,
-      booktab= T)
+      booktab= T,
+      col.names = c("Muestra", "$X_1$", "$X_2$", "$X_3$",
+                    "$X_4$","$X_5$","$X_6$", "$X_7$",
+                    "$X_8$", "$X_9$"),
+      escape = F)
 ```
 
 \subsection{Literal a}
@@ -474,7 +479,7 @@ respectivo estimador insesgado se encuentra dado por la siguiente
 expresión:
 
 $$
-\hat{\sigma} = \frac{S}{C4}
+\hat{\sigma} = \frac{S}{C_4}
 $$
 
 Donde S está dado por:
@@ -483,7 +488,7 @@ $$
 S = \sqrt{\frac{1}{n-1}\sum_{i=1}^n(x_i-\bar{x})^2}
 $$
 
-Y C4 es una constante para n = 9
+Y C4 es una constante para $n = 9$
 
 Usando los datos en las expresiones anteriores se obtiene que la media
 del proceso $\bar{\bar{x}}$ es -0.047 y la desviación $\hat{\sigma}$ es
@@ -494,10 +499,10 @@ del proceso $\bar{\bar{x}}$ es -0.047 y la desviación $\hat{\sigma}$ es
 Para calcular $\widehat{C_{pk}}$ se conoce la siguiente expresión:
 
 $$
-\widehat{C_{pk}} = min(\frac{LES-\hat{\mu}}{3\hat{\sigma}}, \frac{\hat{\mu}-LEI}{3\hat{\sigma}})
+\widehat{C_{pk}} = min\left(\frac{LES-\hat{\mu}}{3\hat{\sigma}}, \frac{\hat{\mu}-LEI}{3\hat{\sigma}}\right)
 $$
 
-Sabiendo que LEI = -0.05, LES = 0.05, $\hat{\mu}$ = $\bar{\bar{x}}$ =
+Sabiendo que LEI = -0.5, LES = 0.5, $\hat{\mu}$ = $\bar{\bar{x}}$ =
 -0.047 y $\hat{\sigma}$ = 0.977, se llega a que:
 
 $$
@@ -511,19 +516,19 @@ encuetran por fuera de los límites de especificación y por lo tanto, el
 resultado obtenido en la expresión de arriba es congruente con la
 gráfica de control final.
 
-Por otro lado, se tiene que un IC al 95% para $\widehat{C_{pk}}$ está
+Por otro lado, se tiene que un IC al 95% para $C_{pk}$ está
 dado por:
 
 $$
-\widehat{C_{pk}}[1\pm Z_{0.025}\sqrt{\frac{1}{9n\widehat{C_{pk}}}+\frac{1}{2n-1}}]
+\widehat{C_{pk}}\left[1\pm Z_{0.025}\sqrt{\frac{1}{9n\widehat{C_{pk}}}+\frac{1}{2n-1}}\right]
 $$
 
-Y con esto, sabiendo que n = 9, se tiene que:
+Y con esto, sabiendo que $n = 9$, se tiene que:
 
 $$
-\widehat{C_{pk}} \in (0.0418, 0.2674)
+C_{pk} \in (0.0418, 0.2674)
 $$ Es decir, con una significancia usual el valor verdadero $C_{pk}$ se
-encuentra contenido en el anterior intervalor.
+encuentra contenido en el anterior intervalo.
 
 \subsection{Literal e}
 
@@ -535,7 +540,7 @@ $$
 Estandarizando se obtiene que:
 
 $$
-P = P(Z \geq \frac{LC+2\sigma_{\bar{x}}-LC}{\hat{\sigma}/\sqrt{n}})
+P = P\left(Z \geq \frac{LC+2\sigma_{\bar{x}}-LC}{\hat{\sigma}/\sqrt{n}}\right)
 $$
 Sabiendo que $\sigma_{\bar{x}} = \hat{\sigma}/\sqrt{n}$ y simplificando se llega a que:
 
@@ -569,23 +574,23 @@ sdqcc2f <- qcc(bd[-c(7,20),-1], type="S",newdata=bd2f, plot = F)
 
 meanqcc2f <- qcc(bd[-c(7,20),-1], type="xbar", newdata=bd2f,std.dev = "UWAVE-SD", plot = F)
 
-sdqccdf2 <- data.frame(Subgrupo=1:24, Desviaciones=sdqcc2$statistics)
+sdqccdf2 <- data.frame(Subgrupo=1:23, Desviaciones=sdqcc2f$statistics)
 
 p1 <- ggplot(sdqccdf2, aes(Subgrupo, Desviaciones)) +
   geom_point() +
   geom_path()+
-  geom_point(data = data.frame(Subgrupo=24:28,
-                               Desviaciones=sdqcc2f$newstats[1:5]),
+  geom_point(data = data.frame(Subgrupo=23:28,
+                               Desviaciones=c(sdqcc2f$statistics[23],
+                                              sdqcc2f$newstats[1:5])),
              colour = "black")+
   geom_path(data = data.frame(Subgrupo=23:28,
-                               Desviaciones=c(sdqcc2$statistics[23],
+                               Desviaciones=c(sdqcc2f$statistics[23],
                                               sdqcc2f$newstats[1:5])))+
   geom_point(data = data.frame(Subgrupo=29:38,
                                Desviaciones=sdqcc2f$newstats[6:15]),
              colour = "red")+ 
   geom_path(data = data.frame(Subgrupo=28:38,
-                               Desviaciones=sdqcc2f$newstats[5:15]))+
-  geom_line()+
+                               Desviaciones=sdqcc2f$newstats[5:15]))+  geom_line()+
   geom_vline(xintercept = 23.5, linetype="dashed")+
   geom_hline(yintercept=sdqcc2$limits[1], linetype="dashed",size=1)+
   geom_hline(yintercept=sdqcc2$limits[2], linetype="dashed",size=1)+
@@ -673,7 +678,7 @@ kable(head(cbind(1:5, datos5), 5), longtable = T, booktabs = T,
 \subsection{Prueba de bondad de ajuste a los datos}
 
 Para comenzar, se realiza una prueba de normalidad para garantizar que la
-metología usada sea adecuada a la situación dada, para este caso se usará 
+metodología usada sea adecuada a la situación dada, para este caso se usará 
 un gráfico de probabilidad normal como argumento gráfico y la prueba de
 normalidad de Anderson - Darling la cual tiene el siguiente juego de
 hipótesis:
@@ -684,7 +689,8 @@ H_0: X \sim N(\mu, \sigma^2) \\
 H_1: X \nsim N(\mu, \sigma^2) 
 \end{cases}
 $$
-Con $X:$ Peso de la referencia de pasta dental seleccionada.
+
+Con $X:$ Peso del tubo de la referencia de pasta dental seleccionada.
 
 ```{r ad-test5}
 res_ad_test <-
@@ -748,6 +754,7 @@ meancontrolchart(med_ind)
 En este caso tampoco existen puntos fuera de los límites de control por lo
 que se puede concluir que el proceso se encuentra en control.
 
+\newpage
 \subsection{Datos adicionales}
 
 Puesto que el proceso se encuentra bajo control, se comienza la fase II para
@@ -873,13 +880,13 @@ dental con más contenido de lo habitual.
 
 \section{Ejercicio 6}
 
-Según [1], se tiene el siguiente intervalo de confianza para $S^2$
+Según [@montgo], se tiene el siguiente intervalo de confianza para $s^2$
 $$\left(\frac{\overline{\rm s}^2}{n-1}\chi_{1 - \alpha/2,n-1}^{2}\ , \ \frac{\overline{\rm s}^2}{n-1}\chi_{\alpha/2,n-1}^{2}\right)$$
 donde los límites superior e inferior de dicho intervalo, corresponden al UCL y al LCL de la gráfica de control de $s^2$ respectivamente, además, la línea central corresponde
 a $\overline{\rm s}^2$.
 
-Luego, se usa como alternativa tomar raiz tanto a ambos extremos del intervalo
-como a la línes central obteniendo el lo siguiente para la gráfica de control de $s$.
+Luego, se usa como alternativa tomar raíz tanto a ambos extremos del intervalo
+como a la línea central obteniendo lo siguiente para la gráfica de control de $s$.
 
 $$
 \begin{cases}
@@ -951,7 +958,7 @@ pasoTresData <- pasoTres$data %>%
 pasoTres$plot
 ```
 
-Ahora, se puede detectar la existencia de dos subgrupos que no se residen en 
+Ahora, se puede detectar la existencia de tres subgrupos que no se residen en 
 el interior de los límites de control, evento que no ocurrió en la Figura 6, asimismo,
 debido a que el nivel de significancia usado era mayor que 0.0027, era de esperarse
 límites más estrechos.
@@ -980,3 +987,5 @@ estas diferencias numéricas podrían resultar en un problema para el ente
 encargado de dicho proceso, por lo que se tiene que es de vital importancia
 la adecuada selección de la metodología que va a ser usada a la hora
 de efectuar el análisis respecto al estado del proceso.
+
+\section{Referencias}

@@ -17,7 +17,7 @@ sgraph <- function(data, sig = 0.05) {
     geom_label(aes(x = 0, y = sbar, label = round(sbar,3)))+
     geom_label(aes(x = 0, y = ucl, label = round(ucl,3)))+
     scale_x_continuous(breaks = 1:n, labels = as.character(data$Muestra)) +
-    labs(y = "Desviación estándar estimada", x = "Muestra",
+    labs(y = "Desviación estándar estimada", x = "Subgrupo",
          title = "Gráfico de control para s") +
     scale_color_manual(values = c ("black", "red")) + 
     theme_bw() +
@@ -45,7 +45,7 @@ xbargraph <- function(data, sbar, sig = 0.05) {
     geom_label(aes(x = 0, y = xbarbar, label = round(xbarbar,3)))+
     geom_label(aes(x = 0, y = ucl, label = round(ucl,3)))+
     scale_x_continuous(breaks = 1:n, labels = as.character(data$Muestra)) +
-    labs(y = "Media muestral estimada", x = "Muestra",
+    labs(y = "Media muestral estimada", x = "Subgrupo",
          title = "Gráfico de control para la media muestral") +
     scale_color_manual(values = c ("black", "red")) + 
     theme_bw() +
