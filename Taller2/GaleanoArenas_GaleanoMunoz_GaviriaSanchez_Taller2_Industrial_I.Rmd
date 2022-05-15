@@ -1,0 +1,69 @@
+---
+header-includes:
+- \usepackage{longtable}
+- \usepackage[utf8]{inputenc}
+- \usepackage[spanish]{babel}\decimalpoint
+- \setlength{\parindent}{1.25cm}
+- \usepackage{amsmath}
+- \usepackage{xcolor}
+- \usepackage{cancel}
+- \usepackage{array}
+- \usepackage{float}
+- \usepackage{multirow}
+output:
+  pdf_document: 
+    number_sections: yes
+fontsize: 12pt
+papersize: letter
+geometry: margin = 1in
+language: "es"
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, fig.align = "center",
+                      fig.height = 3.2, fig.pos = "H")
+library(kableExtra)
+library(knitr)
+library(tidyverse)
+library(qcc)
+library(latex2exp)
+```
+
+```{=tex}
+\input{titlepage}
+\thispagestyle{empty}
+\tableofcontents
+\newpage
+\thispagestyle{empty}
+\listoffigures
+\newpage
+```
+
+```{=tex}
+\pagestyle{myheadings}
+\setcounter{page}{4}
+```
+
+<!-- Gaviria -->
+
+\section{Ejercicio 1}
+
+<!-- Juanjo -->
+
+\section{Ejercicio 2}
+
+<!-- Simon -->
+
+\section{Ejercicio 3}
+
+\section{Ejercicio 4}
+
+<!-- Gaviria -->
+
+\section{Ejercicio 5}
+
+
+
