@@ -73,6 +73,6 @@ plotewma <- ggplot(data = datosewma, aes(Muestra, Zi)) +
   geom_hline(yintercept = mu_0) +
   geom_step(aes(y = LCL), linetype = "dashed") +
   geom_step(aes(y = UCL), linetype = "dashed") +
-  labs(y = TeX(r'(Z_i$)'), title = "Gráfico EWMA para la característica de calidad") +
+  labs(y = TeX(r'($Z_i$)'), title = "Gráfico EWMA para la característica de calidad") +
   theme_minimal() +
   theme(plot.title = element_text(hjust = .5))
