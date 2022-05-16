@@ -72,14 +72,22 @@ kable(head(remaches), longtable = T, booktabs = T,
 
 \subsection{Gráfica de control a usar}
 
-Teniendo en cuenta que se tiene el número **total** de remaches sin colocar en **un avión** particular y se están inspeccionando 25 aviones para los cuales la cantidad de remaches sin colocar en cada uno de ellos no tiene que ver con dicha cantidad en otro avión, es razonable usar la gráfica de control para el número total de defectos por unidad de inspección, la cual en este caso es **un único avión** obteniendo así 25 unidades de inspección diferentes e independientes.
+Teniendo en cuenta que se tiene el número **total** de remaches 
+sin colocar en **un avión** particular y se están inspeccionando
+25 aviones para los cuales la cantidad de remaches sin colocar en
+cada uno de ellos no tiene que ver con dicha cantidad en otro
+avión, es razonable usar la gráfica de control para el número 
+total de defectos por unidad de inspección, la cual en este caso
+es **un único avión** obteniendo así 25 unidades de inspección
+diferentes e independientes.
 
 Sea $X:$ Número total de remaches sin colocar en un avión
 
 $$
-X \sim Poisson(c) \Leftrightarrow P(X=x) = \frac{c^x e^{-c}}{x!}
+X \sim Poisson(c) \Leftrightarrow P(X=x) = \frac{c^x e^{-c}}{x!} \hspace{.125in} x \in \mathbb{N} \ \cup \ \{0\}
 $$
-El parámetro $c$ de la distribución Poisson se estima con el número de remaches promedio en los 25 aviones, esto es
+El parámetro $c$ de la distribución Poisson se estima con el número
+de remaches promedio en los 25 aviones, esto es
 
 $$
 \bar{c} = \frac{1}{25}\sum_{i=1}^{25}x_i \\ 
@@ -88,7 +96,8 @@ $$
 $$
 X_i: \text{Número total de remaches sin colocar en el }i \text{-ésimo avión,} \ i\in \{1, \cdots,25\} \\
 $$
-A continuación se presentan los límites de control para el número de remaches sin colocar en un avión
+A continuación se presentan los límites de control para el número
+de remaches sin colocar en un avión
 
 \begin{table}[H]
 \centering
@@ -102,7 +111,11 @@ $\bar{c} - 3 \sqrt{\bar{c}}$   & $\bar{c}$  & $\bar{c} + 3 \sqrt{\bar{c}}$   \\ 
 
 \subsection{Gráficas de control para el número de remaches sin colocar (c)}
 
-Una vez identificada la gráfica de control adecuada para la situación presentada, se realizan los gráficos de control teniendo en cuenta que si algún punto se sale de los límites se supondra que es debido a causas asignable y la gráfica será reajustada sin dicha observación particular.
+Una vez identificada la gráfica de control adecuada para la
+situación presentada, se realizan los gráficos de control teniendo
+en cuenta que si algún punto se sale de los límites se supondra que
+es debido a causas asignable y la gráfica será reajustada sin dicha
+observación particular.
 
 ```{r control1, fig.cap="Gráfica de control para el número de remaches"}
 #qcc(remaches$Remaches[-9], sizes = 1, type = "c")
@@ -117,7 +130,8 @@ control_lines <- data.frame(x = c(rep(0, 3), rep(26, 3)),
                             y = rep(lims, 2),
                             text = labels)
 remaches <- remaches %>% 
-  mutate(Estado = if_else(between(Remaches, LCL_remaches, UCL_remaches),
+  mutate(Estado = 
+           if_else(between(Remaches, LCL_remaches, UCL_remaches),
                           "Inside", "Outside"))
 
 ggplot(remaches, aes(Avion, Remaches)) +
@@ -132,7 +146,9 @@ ggplot(remaches, aes(Avion, Remaches)) +
         legend.position = "none")
 ```
 
-Se puede apreciar que el número de remaches en el avión 9 está por fuera de los límites de control por lo que es necesario excluirlo del análisis y recalcular los límites
+Se puede apreciar que el número de remaches en el avión 9 está por
+fuera de los límites de control por lo que es necesario excluirlo
+del análisis y recalcular los límites
 
 ```{r control2, fig.cap="Gráfica de control para el número de remaches sin la observación 9"}
 # Se quita la observacion 9
@@ -164,11 +180,16 @@ ggplot(remaches2, aes(Avion, Remaches)) +
         legend.position = "none")
 ```
 
-En esta nueva gráfica se aprecia que luego de eliminar la observación 9, el proceso se encuentra en control debido a que ningún punto se sale de los límites de control y por la inexistencia de patrones sistemáticos por lo que se puede comenzar con la fase II del proceso.
+En esta nueva gráfica se aprecia que luego de eliminar la
+observación 9, el proceso se encuentra en control debido a que
+ningún punto se sale de los límites de control y por la
+inexistencia de patrones sistemáticos por lo que se puede 
+comenzar con la fase II del proceso.
 
 \subsection{Curva de operación característica (OC)}
 
-Luego de averiguar como luce el proceso en control, se realiza la curva de operación característica del proceso
+Luego de averiguar como luce el proceso en control, se realiza la
+curva de operación característica del proceso
 
 ```{r OC-Aviones, fig.cap="Curva de operación del proceso"}
 c <- seq(0, 50, 0.02)
@@ -185,9 +206,25 @@ ggplot(mapping = aes(c, beta)) +
   theme(plot.title = element_text(hjust = 0.5)) 
 ```
 
-* La probabilidad de no detectar el cambio en el número promedio de remaches en un avión cuando en realidad hubo cambios, es menor a 0.25 para valores de c menores a 5 o mayores a 37 aproximadamente.
-* Para valores de $c \in (10, 30)$ la probabilidad de cometer error tipo II es mayor o igual a 0.75.
-* Para valores de c aproximadamente mayores a 45, el proceso tiene la capacidad de detectar el cambios de forma rápida.
+* La probabilidad de no detectar el cambio en el número promedio 
+de remaches en un avión cuando en realidad hubo cambios, es menor 
+a 0.25 para valores de $c$ menores a 5 o mayores a 37
+aproximadamente.
+* Para valores de $c \in (10, 30)$ la probabilidad de cometer error
+tipo II es mayor o igual a 0.75.
+* Para valores de $c$ aproximadamente mayores a 45, el proceso
+tiene la capacidad de detectar cambios de forma rápida.
+* Aunque numéricamente es incorrecto no detectar el cambio cuando
+en realidad hubo desplazamiento, dada la naturaleza del problema
+tener un número promedio de remaches sin colocar menor ($c<20$) es
+una característica deseable.
+* En contraste al inciso anterior, tener un mayor número de
+remaches sin colocar es un problema del proceso por lo que no
+detectar el cambio rápidamente es una característica problemática.
+* El proceso no parece ser bueno puesto que la probabilidad de
+cometer error tipo II empieza a ser lo suficientemente pequeña
+para valores de $c$ mayores o iguales a 40 lo cual es casi el 
+doble del valor promedio de remaches sin colocar en control.
 
 \subsection{Calificación del proceso}
 
