@@ -51,6 +51,72 @@ library(latex2exp)
 
 \section{Ejercicio 1}
 
+Un proceso produce bandas de hule en lotes de tamaño 2500. Los registros de inspección de los últimos 25 lotes revelan los datos que aparecen en la siguiente tabla:
+
+```{r}
+Lote <- 1:25
+Defectuosos <- c(344,338,332,337,304,296,351,312,331,319,331,321,327,310,332,312,329,352,386,335,324,335,327,320,340)
+hule <- data.frame(Lote,Defectuosos)
+kable(head(hule,5),
+      caption = '5 de 25 lotes inspeccionados',
+      longtable = T,
+      booktab = T, 
+      align = 'c',
+      escape = F)
+```
+
+\subsection{Literal a}
+
+Así pues, se desea construír la gráfica de control para la proporción de defectuosos. El resultado es como sigue:
+
+```{r fig.cap="Gráfico de control para la proporción de defectuosos"}
+propdef <- qcc(hule$Defectuosos, sizes=2500, type="p", plot = F)
+
+dqccdf <- data.frame(Subgrupo = 1:length(propdef$statistics), 
+                     Proporciones = propdef$statistics)
+ggplot(dqccdf, aes(Subgrupo, Proporciones))+
+  geom_point() +
+  geom_path()+
+    geom_hline(yintercept=propdef$limits[1,1], linetype="dashed",size=1)+
+    geom_hline(yintercept=propdef$limits[1,2], linetype="dashed",size=1)+
+    geom_hline(yintercept=propdef$center, linetype="dashed",size=1)+
+    geom_label(aes(x = 25, y = propdef$limits[1,1], label = "LCL"))+
+    geom_label(aes(x = 25, y = propdef$limits[1,2], label = "UCL"))+
+    geom_label(aes(x = 25, y = propdef$center, label = "CL"))+
+    geom_label(aes(x = 0, y = propdef$limits[1,1], label = round(propdef$limits[1,1],3)))+
+    geom_label(aes(x = 0, y = propdef$limits[1,2], label = round(propdef$limits[1,2],3)))+
+    geom_label(aes(x = 0, y = propdef$center, label = round(propdef$center,3)))+
+    labs(title="Gráfico de control para proporción\n de defectuosos")+
+    theme_bw()+
+    theme(plot.title = element_text(hjust = 0.5))
+  
+```
+
+De este gráfico se aprecia inicialmente que, la muestra 19 presenta una proporción de defectuosos por encima del límite de control superior, sin embargo y para esta causa, esa violacion se asume por consecuencia de una causa asignable, por lo cual se infiere corregible. 
+
+Por otro lado, se nota que el límite de control inferior se encuentra por encima de cero, lo que indica que en el proceso de producción de bandas de hule, no es común encontrarse con lotes sin defectos. Siendo más específicos, se aprecia que el proceso se centra en alrededor del 13% de unidades defectuosas por lote, lo cuál puede considerarse alto si el costo de desecho o reproceso es igualmente elevado. 
+
+Finalmente y en términos de planta, es esperable que por un lote de 2500 bandas, un operario encuentre entre 280 y 380 unidades defectuosas. 
+
+\subsection{Literal b}
+
+Con lo anterior, se construye la curva característica de operación como se muestra acontinuación:
+
+```{r fig.cap="Curva característica de operación"}
+p <- seq(0.01,0.25,0.0001)
+ls <- pbinom(379,2500,p)
+li <- pbinom(280,2500,p)
+beta <- ls-li
+OCframe <- data.frame(p,beta)
+ggplot(OCframe, aes(p, beta)) +
+  geom_line() +
+  labs(x = "P", y = expression(beta), title="Curva caracteristica OC")+
+  theme_bw()+
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+De la anterior curva característica de operación se concluye que, si se toma una muestra de 25 bandas de hule y la proporción real de defectuosos se encuentra cerca de 0.13, entonces la probabilidad de concluír que el proceso está en control dado que realmente no lo está, es del alrededor del 99%. Para proporciones de defectuosos inferiores al 10% o superiores al 17%, la gráfica de control recupera una gran habilidad para detectar cambios en el proceso.
+
 <!-- Juanjo -->
 
 \section{Ejercicio 2}
@@ -64,6 +130,109 @@ library(latex2exp)
 <!-- Gaviria -->
 
 \section{Ejercicio 5}
+
+En un estudio sobre el sistema de medición de una empresa se tienen los siguientes datos, los cuales corresponden a diez piezas medidas dos veces por cuatro operadores.
+
+```{r}
+op11 <- c(17.67,13.50,15.21,11.49,16.52,15.30,15.50,16.30,14.80,15.49)
+op12 <- c(13.84,15.41,15.15,15.29,18.51,18.25,17.57,15.82,14.21,15.65)
+op21 <- c(14.78,18.83,15.51,16.02,17.70,16.28,17.02,13.85,12.11,14.48)
+op22 <- c(12.50,15.63,14.12,11.87,14.62,16.12,13.94,13.93,11.58,11.39)
+op31 <- c(12.10,16.60,14.24,14.71,16.90,14.73,11.34,13.01,13.20,16.45)
+op32 <- c(13.16,14.56,14.62,13.19,15.73,16.16,15.67,14.38,16.26,14.26)
+op41 <- c(14.75,14.91,12.20,15.12,13.90,15.06,15.36,14.62,15.20,17.24)
+op42 <- c(16.46,14.86,15.20,14.35,16.29,16.32,16.87,14.25,16.26,15.40)
+ops <- data.frame(pieza = 1:10,op11,op12,op21,op22,op31,op32,op41,op42)
+
+kable(ops,
+      caption = 'Mediciones por 4 operarios',
+      longtable = T,
+      booktab = T, 
+      align = 'c',
+      escape = F,
+      linesep = "",
+      col.names = c("Pieza","1","2","1","2","1","2","1","2")) %>%
+  add_header_above(c(" " = 1,
+                     "Operario 1\nMediciones" = 2, 
+                     "Operario 2\nMediciones"= 2,
+                     "Operario 3\nMediciones"= 2,
+                     "Operario 4\nMediciones"= 2))
+```
+
+\subsection{Literal a}
+
+Se desea estimar $\sigma_{Reproductibilidad}$ y $\sigma_{Repetibilidad}$ usando las siguientes relaciones:
+
+$$
+\hat{\sigma}_{Repetibilidad} = \bar{\bar{R}}/d_2, \ d_2 \text{ para n=4}
+$$
+$$
+\hat{\sigma}_{Reproductibilidad} = R_{\bar{\bar{x}}}/d_2, \ d_2 \text{ para n=2}
+$$
+```{r}
+rangos <- c()
+rangos[1] <- mean(abs(ops[,2]-ops[,3]))
+rangos[2] <- mean(abs(ops[,4]-ops[,5]))
+rangos[3] <- mean(abs(ops[,6]-ops[,7]))
+rangos[4] <- mean(abs(ops[,8]-ops[,9]))
+rx <- mean(rangos) 
+sigmarepe <- rx/1.128 #d_2 para n = 2
+
+promedios <- c()
+promedios[1] <- mean(apply(ops[,2:3],1,mean))
+promedios[2] <- mean(apply(ops[,4:5],1,mean))
+promedios[3] <- mean(apply(ops[,6:7],1,mean))
+promedios[4] <- mean(apply(ops[,8:9],1,mean))
+xbarbarmax <- max(promedios)
+xbarbarmin <- min(promedios)
+Rxbarbar <- xbarbarmax-xbarbarmin
+
+sigmarepro <- Rxbarbar/2.059 #d_2 para n = 4
+```
+
+
+Usando los datos se obtiene que:
+
+\begin{itemize}
+\item $\bar{\bar{R}} = 1.7848$
+\item $R_{\bar{\bar{x}}} = 1.011$
+\end{itemize}
+
+Además, teniendo en cuenta que $d_2$ en repetibilidad se escoge para el número de mediciones y en reproducibilidad se escoge para el número de operarios, se llega a que:
+
+\begin{itemize}
+\item $\hat{\sigma}_{Repetibilidad} = 1.5822$
+\item $\hat{\sigma}_{Reproductibilidad} = 0.4908$
+\end{itemize}
+
+\subsection{Literal b}
+
+Obtenidas las estimaciones anteriores, se puede concluír que en general, la mayor parte de las desviaciones en el sistema de medición está dada por las variaciones en las propias mediciones, es decir, se podrían asociar a una falta de calibración en los instrumentos de medición.
+
+\subsection{Literal c}
+
+Finalmente, con las estimaciones obtenidas, se puede estimar la variabilidad asociada al error de medición mediante la siguiente relación directa:
+
+$$
+\hat{\sigma}_G^2 = \hat{\sigma}^2_{Reproductibilidad} + \hat{\sigma}^2_{Repetibilidad}
+$$
+```{r}
+sigmag <- sigmarepro^2+sigmarepe^2
+```
+
+Y con esto se obtiene que $\hat{\sigma}_G^2 = 0.4908^2+1.5822^2 = 2.7443$. 
+
+Ahora, para concluír sobre la tolerancia del sistema de medición se tiene que:
+
+$$
+\frac{Precision}{Tolerancia} = \frac{6\hat{\sigma}_G}{2T}, \text{ Con T la tolerancia de las especificaciones.}
+$$
+```{r}
+tol <- 0.6
+porc <- (6*sqrt(sigmag))/(2*tol)
+```
+
+Así, teniendo en cuenta que $\hat{\sigma}_G = 1.6566$ y $T=0.6$, se llega a que el porcentaje de tolerancia del sistema de medición es $P/T = 8.283  <<< 0.1$, por lo cual se puede concluír que el sistema de medición es muy inadecuado y necesita una intervención en sus componentes asociadas.
 
 
 
