@@ -113,12 +113,11 @@ $\bar{c} - 3 \sqrt{\bar{c}}$   & $\bar{c}$  & $\bar{c} + 3 \sqrt{\bar{c}}$   \\ 
 
 Una vez identificada la gráfica de control adecuada para la
 situación presentada, se realizan los gráficos de control teniendo
-en cuenta que si algún punto se sale de los límites se supondra que
-es debido a causas asignable y la gráfica será reajustada sin dicha
-observación particular.
+en cuenta que si algún punto se sale de los límites se supondrá que
+es debido a causas asignables y la gráfica será reajustada sin
+dicha observación particular.
 
 ```{r control1, fig.cap="Gráfica de control para el número de remaches"}
-#qcc(remaches$Remaches[-9], sizes = 1, type = "c")
 c_bar <- sum(remaches$Remaches)/dim(remaches)[1]
 LCL_remaches <- c_bar - 3*sqrt(c_bar)
 UCL_remaches <- c_bar + 3*sqrt(c_bar)
@@ -141,6 +140,7 @@ ggplot(remaches, aes(Avion, Remaches)) +
   scale_x_continuous(breaks = 1:25) +
   scale_color_manual(values = c("black", "red")) +
   geom_label(aes(x = x, y = y, label = text), control_lines) +
+  labs(title = "Límites de control con todos los aviones") +
   theme_minimal() +
   theme(plot.title = element_text(hjust = 0.5),
         legend.position = "none")
@@ -175,6 +175,7 @@ ggplot(remaches2, aes(Avion, Remaches)) +
   scale_x_continuous(breaks = 1:25) +
   scale_color_manual(values = c("black", "red")) +
   geom_label(aes(x = x, y = y, label = text), control_lines2) +
+  labs(title = "Límites de control recalculados") +
   theme_minimal() +
   theme(plot.title = element_text(hjust = 0.5),
         legend.position = "none")
@@ -182,7 +183,7 @@ ggplot(remaches2, aes(Avion, Remaches)) +
 
 En esta nueva gráfica se aprecia que luego de eliminar la
 observación 9, el proceso se encuentra en control debido a que
-ningún punto se sale de los límites de control y por la
+ningún punto se sale de los límites, además de la
 inexistencia de patrones sistemáticos por lo que se puede 
 comenzar con la fase II del proceso.
 
@@ -227,6 +228,14 @@ para valores de $c$ mayores o iguales a 40 lo cual es casi el
 doble del valor promedio de remaches sin colocar en control.
 
 \subsection{Calificación del proceso}
+
+En el hipotético caso de tener 10 remaches sin colocar represente
+un buen desempeño, se le daría una mala nota al proceso debido a
+que la cantidad de remaches sin colocar es mayor a 10 en todos los
+aviones inspeccionados, es decir, ninguno cumple la especificación
+dada; el proceso "está en control" pero dicho control no es el
+deseado por la compañia siendo necesario implementar cambios en el
+proceso de remachado para disminuir dicha cantidad.
 
 <!-- Simon -->
 
