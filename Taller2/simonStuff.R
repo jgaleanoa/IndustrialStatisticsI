@@ -54,7 +54,7 @@ lambda <- 0.05
 L <- 2.615
 Z <- function(i, xbar, lambda = 0.05, muo = mu_0) {
   ac <- 0
-  for (j in i:1) {
+  for (j in 1:i) {
     ac <- ac + (1-lambda)^(i-j)*xbar[j]
   }
   ac <- ac*lambda + (1-lambda)^(i)*muo

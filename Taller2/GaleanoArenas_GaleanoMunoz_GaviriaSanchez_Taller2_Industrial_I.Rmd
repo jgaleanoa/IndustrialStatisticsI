@@ -92,7 +92,7 @@ ggplot(dqccdf, aes(Subgrupo, Proporciones))+
   
 ```
 
-De este gráfico se aprecia inicialmente que, la muestra 19 presenta una proporción de defectuosos por encima del límite de control superior, sin embargo y para esta causa, esa violacion se asume por consecuencia de una causa asignable, por lo cual se infiere corregible. 
+De este gráfico se aprecia inicialmente que, la muestra 19 presenta una proporción de defectuosos por encima del límite de control superior, sin embargo y para esta causa, esa violación se asume por consecuencia de una causa asignable, por lo cual se infiere corregible. 
 
 Por otro lado, se nota que el límite de control inferior se encuentra por encima de cero, lo que indica que en el proceso de producción de bandas de hule, no es común encontrarse con lotes sin defectos. Siendo más específicos, se aprecia que el proceso se centra en alrededor del 13% de unidades defectuosas por lote, lo cuál puede considerarse alto si el costo de desecho o reproceso es igualmente elevado. 
 
@@ -100,7 +100,7 @@ Finalmente y en términos de planta, es esperable que por un lote de 2500 bandas
 
 \subsection{Literal b}
 
-Con lo anterior, se construye la curva característica de operación como se muestra acontinuación:
+Con lo anterior, se construye la curva característica de operación como se muestra a continuación:
 
 ```{r fig.cap="Curva característica de operación"}
 p <- seq(0.01,0.25,0.0001)
@@ -118,7 +118,7 @@ ggplot(OCframe, aes(p, beta)) +
 De la anterior curva característica de operación se concluye que, si se toma una muestra de 25 bandas de hule y la proporción real de defectuosos se encuentra cerca de 0.13, entonces la probabilidad de concluír que el proceso está en control dado que realmente no lo está, es del alrededor del 99%. Para proporciones de defectuosos inferiores al 10% o superiores al 17%, la gráfica de control recupera una gran habilidad para detectar cambios en el proceso.
 
 <!-- Juanjo -->
-
+\newpage
 \section{Ejercicio 2}
 
 Se muestra la información sobre el número de remaches sin colocar
@@ -165,15 +165,15 @@ $$
 A continuación se presentan los límites de control para el número
 de remaches sin colocar en un avión
 
-\begin{table}[H]
-\centering
-\caption{Límites de control para el número de remaches sin colocar}
-\begin{tabular}{|c|c|c|c|}
-\hline
-LCL & CL & UCL \\ \hline
-$\bar{c} - 3 \sqrt{\bar{c}}$   & $\bar{c}$  & $\bar{c} + 3 \sqrt{\bar{c}}$   \\ \hline
-\end{tabular}
-\end{table}
+$$
+\begin{cases}
+\begin{aligned}
+\text{UCL} &= \overline{\rm c} + 3 \sqrt{\overline{\rm c}}, \ 1 \leq i \leq 25\\
+\text{CL} &= \overline{\rm c}, \ 1 \leq i \leq 25 \\
+\text{LCL} &= \overline{\rm c} - 3 \sqrt{\overline{\rm c}}, \ 1 \leq i \leq 25
+\end{aligned}
+\end{cases}
+$$
 
 \subsection{Gráficas de control para el número de remaches sin colocar (c)}
 
@@ -249,10 +249,10 @@ ggplot(remaches2, aes(Avion, Remaches)) +
 
 En esta nueva gráfica se aprecia que luego de eliminar la
 observación 9, el proceso se encuentra en control debido a que
-ningún punto se sale de los límites, además de la
-inexistencia de patrones sistemáticos por lo que se puede 
+ningún punto se sale de los límites por lo que se puede 
 comenzar con la fase II del proceso.
 
+\newpage
 \subsection{Curva de operación característica (OC)}
 
 Luego de averiguar como luce el proceso en control, se realiza la
@@ -332,7 +332,7 @@ kable_styling(latex_options = c("HOLD_position"))
 
 Se tiene que la unidad de inspección son 4 rollos, así que la información mostrada anteriormente no contiene dicha
 característica, por lo que se muestra realmente la cantidad de unidades de inspección que fueron tomadas en cuenta (se muestran los
-registros de los pŕimeros cinco días).
+registros de los primeros seis días).
 
 ```{r}
 kable(head(datos3[, c(1, 4, 3)]), col.names = c("Día", "Cantidad de unidades de inspección", "Cantidad de defectos"),
@@ -378,7 +378,7 @@ en la gráfica de control.
 
 \subsection{Diseño de la gráfica de control CUSUM}
 
-En primer lugar se debe tener en cuenta las siguientes definiciones para los estadísticos de la las desviaciones
+En primer lugar se debe tener en cuenta las siguientes definiciones para los estadísticos de las desviaciones
 acumuladas
 
 $$
@@ -398,7 +398,7 @@ se tendría explícitamente los siguientes estadísticos.
 $$
 \begin{cases}
 \begin{aligned}
-C_{i}^{+} &= max \left(0, x_i - 16.25) + C_{i-1}^{+} \right), \ 1 \leq i \leq 30\\
+C_{i}^{+} &= max \left(0, x_i - 16.25 + C_{i-1}^{+} \right), \ 1 \leq i \leq 30\\
 C_{i}^{-} &= max \left(0, 15.75 - x_i  + C_{i-1}^{-} \right), \ 1 \leq i \leq 30
 \end{aligned}
 \end{cases}
@@ -411,21 +411,22 @@ cusumplot
 ```
 
 Como se puede observar, se tiene que ninguna de las sumas acumuladas se sale de los límites de control, sin embargo
-se sugiera poner especial atención a la tendencia creciente de las sumas acumuladas hacia arriba pues esto podría ser
+se sugiere poner especial atención a la tendencia creciente de las sumas acumuladas hacia arriba pues esto podría ser
 indicio de que la verdadera media del proceso podría presentar futuras desviaciones por encima del valor objetivo.
 
 \textbf{Nota}: al realizar la prueba de normalidad de Shapiro-Wilk se tiene un valor-p de 0.3925, con lo que la hipótesis
 de normalidad no se rechaza y por ende los resultados de la gŕafica son confiables, puesto que la gráfica CUSUM no es
 robusta ante desviaciones de normalidad.
 
+\newpage
 \subsection{Diseño de la gráfica EWMA}
 
 Se construye el siguiente estadístico para la construcción de la gráfica de control.
 
-$$z_i = \lambda \overline{\rm x}_i + (1-\lambda)z_{i-1} , \ 1 \leq i \leq 30$$ con $Z_0 = \mu_0$
+$$z_i = \lambda \overline{\rm x}_i + (1-\lambda)z_{i-1} , \ 1 \leq i \leq 30$$ con $z_0 = \mu_0$
 
 En este caso particular, como se quiere tener un ARL aproximado de 84 para un desplazamiento de $0.25\sigma$, se tiene
-que el valor del parámetro $\lambda$ igual a 0.05 y $L$ igual a 2.615.
+que el valor del parámetro $\lambda$ es igual a 0.05 y $L$ es igual a 2.615.
 
 Dicho esto se procede a presentar el resultado de la gráfica de control para este caso, teniendo en cuenta
 que los límites de control están dados por
@@ -527,6 +528,7 @@ Además, teniendo en cuenta que $d_2$ en repetibilidad se escoge para el número
 \item $\hat{\sigma}_{Reproductibilidad} = 0.4908$
 \end{itemize}
 
+\newpage
 \subsection{Literal b}
 
 Obtenidas las estimaciones anteriores, se puede concluír que en general, la mayor parte de las desviaciones en el sistema de medición está dada por las variaciones en las propias mediciones, es decir, se podrían asociar a una falta de calibración en los instrumentos de medición.
@@ -554,7 +556,7 @@ tol <- 0.6
 porc <- (6*sqrt(sigmag))/(2*tol)
 ```
 
-Así, teniendo en cuenta que $\hat{\sigma}_G = 1.6566$ y $T=0.6$, se llega a que el porcentaje de tolerancia del sistema de medición es $P/T = 8.283  <<< 0.1$, por lo cual se puede concluír que el sistema de medición es muy inadecuado y necesita una intervención en sus componentes asociadas.
+Así, teniendo en cuenta que $\hat{\sigma}_G = 1.6566$ y $T=0.6$, se llega a que el porcentaje de tolerancia del sistema de medición es $P/T = 8.283  >>> 0.1$, por lo cual se puede concluír que el sistema de medición es muy inadecuado y necesita una intervención en sus componentes asociadas.
 
 
 
