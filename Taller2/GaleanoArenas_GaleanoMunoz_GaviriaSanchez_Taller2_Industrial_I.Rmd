@@ -440,7 +440,7 @@ $$
 \end{aligned}
 \end{cases}
 $$
-donde $\sigma_{z_i}^2 = \frac{\sigma^2}{n} \left(\frac{2}{2-\lambda} \right)\left[1 - (1-\lambda)^{2i} \right]$.
+donde $\sigma_{z_i}^2 = \frac{\sigma^2}{n} \left(\frac{\lambda}{2-\lambda} \right)\left[1 - (1-\lambda)^{2i} \right]$.
 
 ```{r fig.cap="Gráfica EWMA"}
 plotewma

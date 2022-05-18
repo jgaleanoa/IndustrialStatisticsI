@@ -60,7 +60,17 @@ Z <- function(i, xbar, lambda = 0.05, muo = mu_0) {
   ac <- ac*lambda + (1-lambda)^(i)*muo
   return(ac)
 }
-Zi <- sapply(1:m, Z, xbar = xi_bar)
+
+Z_alt <- function(xbar, lambda = 0.05, muo = mu_0) {
+  n <- length(xbar)
+  Zi <- numeric(n)
+  for (i in 1:n) {
+    Zi[i] <- lambda*xbar[i] + (1-lambda)*ifelse(i == 1, muo, Zi[i-1])
+  }
+  return(Zi)
+}
+
+Zi <- sapply(1:m, Z, xbar = xi_bar); Zi_alt <- Z_alt(xi_bar)
 sigma_zi <- sqrt(sigma_xbar^2*(lambda/(2-lambda))*(1 - (1-lambda)^(2*(1:m))))
 LCLzi <- mu_0 - L*sigma_zi
 UCLzi <- mu_0 + L*sigma_zi
