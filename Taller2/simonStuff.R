@@ -45,6 +45,10 @@ cusumplot <- ggplot(data = datoscusum, aes(Muestra, Ci, color = sign, group = si
   geom_hline(yintercept = c(UCL, LCL, 0), linetype = "dashed") +
   labs(y = TeX(r'($C_i$)'), title = "Gráfica de sumas acumuladas para la característica de calidad",
        color = "") +
+  geom_label(aes(x = 29, y = UCL, label = "UCL"), color = "black") +
+  geom_label(aes(x = 2, y = UCL, label = UCL), color = "black") +
+  geom_label(aes(x = 29, y = LCL, label = "LCL"), color = "black") +
+  geom_label(aes(x = 2, y = LCL, label = LCL), color = "black") +
   theme_minimal() +
   theme(plot.title = element_text(hjust = .5)) +
   scale_color_manual(labels = c(TeX(r'($C_{i}^{-}$)'), TeX(r'($C_{i}^{+}$)')), values = c("cyan", "red"))

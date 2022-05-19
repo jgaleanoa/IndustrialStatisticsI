@@ -405,7 +405,8 @@ C_{i}^{-} &= max \left(0, 15.75 - x_i  + C_{i-1}^{-} \right), \ 1 \leq i \leq 30
 \end{cases}
 $$
 Haciendo los cómputos de los estadísticos y tomando un valor de $h = 8.01$ (número de desviaciones estándar a partir
-de las cuales el proceso se considera fuera de control), se obtiene el siguiente gráfico.
+de las cuales el proceso se considera fuera de control) para tener un $ARL_0$ de 370, 
+se obtiene el siguiente gráfico.
 
 ```{r fig.cap="Gráfico de control CUSUM"}
 cusumplot
@@ -441,6 +442,7 @@ $$
 \end{aligned}
 \end{cases}
 $$
+
 donde $\sigma_{z_i}^2 = \frac{\sigma^2}{n} \left(\frac{\lambda}{2-\lambda} \right)\left[1 - (1-\lambda)^{2i} \right]$.
 
 ```{r fig.cap="Gráfica EWMA"}
@@ -449,7 +451,11 @@ plotewma
 
 En esta gráfica se puede observar que los puntos se encuentran dentro de los límites de control, por lo que
 no hay sospechas para decir que el proceso se encuentra fuera de control cuando se intentan detectar cambios en la 
-media de 0.25 desviaciones estándar.
+media de 0.25 desviaciones estándar. No obstante, también se observa la tendencia
+creciente de la Figura 7, por lo que se levantan aún más sospechas de que la
+verdadera media del proceso se está alejando por arriba del valor objetivo,
+por lo que hay que prestar especial atención para determinar si esto es o no
+cierto ya que se llega a notar este comportamiento a través de dos metodologías.
 
 <!-- Gaviria -->
 
