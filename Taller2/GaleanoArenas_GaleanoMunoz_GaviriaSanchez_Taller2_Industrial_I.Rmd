@@ -75,19 +75,20 @@ propdef <- qcc(hule$Defectuosos, sizes=2500, type="p", plot = F)
 dqccdf <- data.frame(Subgrupo = 1:length(propdef$statistics), 
                      Proporciones = propdef$statistics)
 ggplot(dqccdf, aes(Subgrupo, Proporciones))+
-  geom_point() +
   geom_path()+
+  geom_point() +
+  geom_point(aes(Subgrupo, Proporciones), dqccdf[19, ], col = "red") +
     geom_hline(yintercept=propdef$limits[1,1], linetype="dashed",size=1)+
     geom_hline(yintercept=propdef$limits[1,2], linetype="dashed",size=1)+
     geom_hline(yintercept=propdef$center, linetype="dashed",size=1)+
-    geom_label(aes(x = 25, y = propdef$limits[1,1], label = "LCL"))+
-    geom_label(aes(x = 25, y = propdef$limits[1,2], label = "UCL"))+
-    geom_label(aes(x = 25, y = propdef$center, label = "CL"))+
+    geom_label(aes(x = 26, y = propdef$limits[1,1], label = "LCL"))+
+    geom_label(aes(x = 26, y = propdef$limits[1,2], label = "UCL"))+
+    geom_label(aes(x = 26, y = propdef$center, label = "CL"))+
     geom_label(aes(x = 0, y = propdef$limits[1,1], label = round(propdef$limits[1,1],3)))+
     geom_label(aes(x = 0, y = propdef$limits[1,2], label = round(propdef$limits[1,2],3)))+
     geom_label(aes(x = 0, y = propdef$center, label = round(propdef$center,3)))+
     labs(title="Gráfico de control para proporción\n de defectuosos")+
-    theme_bw()+
+    theme_minimal()+
     theme(plot.title = element_text(hjust = 0.5))
   
 ```
@@ -111,7 +112,7 @@ OCframe <- data.frame(p,beta)
 ggplot(OCframe, aes(p, beta)) +
   geom_line() +
   labs(x = "P", y = expression(beta), title="Curva caracteristica OC")+
-  theme_bw()+
+  theme_minimal()+
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
@@ -191,7 +192,7 @@ UCL_remaches <- c_bar + 3*sqrt(c_bar)
 lims <- c(LCL_remaches, c_bar, UCL_remaches)
 labels <- c(as.character(round(lims, 4)),  "LCL", "CL", "UCL")
 
-control_lines <- data.frame(x = c(rep(0, 3), rep(26, 3)),
+control_lines <- data.frame(x = c(rep(-0.5, 3), rep(26, 3)),
                             y = rep(lims, 2),
                             text = labels)
 remaches <- remaches %>% 
@@ -203,7 +204,7 @@ ggplot(remaches, aes(Avion, Remaches)) +
   geom_line() +
   geom_point(aes(col = Estado)) +
   geom_hline(yintercept = lims, linetype = "dashed") +
-  scale_x_continuous(breaks = 1:25) +
+  scale_x_continuous(breaks = 1:25, limits = c(-1, 26)) +
   scale_color_manual(values = c("black", "red")) +
   geom_label(aes(x = x, y = y, label = text), control_lines) +
   labs(title = "Límites de control con todos los aviones") +
