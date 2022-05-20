@@ -99,6 +99,33 @@ Por otro lado, se nota que el límite de control inferior se encuentra por encim
 
 Finalmente y en términos de planta, es esperable que por un lote de 2500 bandas, un operario encuentre entre 280 y 380 unidades defectuosas. 
 
+```{r fig.cap = "Gráfica de control corregida"}
+propdef <- qcc(hule$Defectuosos[-19], sizes=2500, type="p", plot = F)
+
+dqccdf <- data.frame(Subgrupo = 1:length(propdef$statistics), 
+                     Proporciones = propdef$statistics)
+ggplot(dqccdf, aes(Subgrupo, Proporciones))+
+  geom_path()+
+  geom_point() +
+    geom_hline(yintercept=propdef$limits[1,1], linetype="dashed",size=1)+
+    geom_hline(yintercept=propdef$limits[1,2], linetype="dashed",size=1)+
+    geom_hline(yintercept=propdef$center, linetype="dashed",size=1)+
+    geom_label(aes(x = 25, y = propdef$limits[1,1], label = "LCL"))+
+    geom_label(aes(x = 25, y = propdef$limits[1,2], label = "UCL"))+
+    geom_label(aes(x = 25, y = propdef$center, label = "CL"))+
+    geom_label(aes(x = 1, y = propdef$limits[1,1], label = round(propdef$limits[1,1],3)))+
+    geom_label(aes(x = 1, y = propdef$limits[1,2], label = round(propdef$limits[1,2],3)))+
+    geom_label(aes(x = 1, y = propdef$center, label = round(propdef$center,3)))+
+    labs(title="Gráfico de control para proporción\n de defectuosos")+
+    theme_minimal()+
+    theme(plot.title = element_text(hjust = 0.5))
+```
+
+Se puede observar que no hay cambios muy abruptos respecto a la gráfica de control
+con el subgrupo por arriba del límite de contorl superior, por lo que si bien es adecuado
+quitarlo al asumir causas asignables, realmente no afectó mucho en el valor de la media del
+proceso.
+
 \subsection{Literal b}
 
 Con lo anterior, se construye la curva característica de operación como se muestra a continuación:
