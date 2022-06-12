@@ -51,6 +51,25 @@ library(latex2exp)
 
 \section{Ejercicio 1}
 
+Una compañía utiliza un plan de muestreo tal que el tamaño de la muestra es la raíz cuadrada del tamaño del lote. Si el 1\% o menos de los artículos de la muestra son defectuosos, el lote es aceptado de lo contrario es rechazado. Si se tiene un lote de tamaño 40000.
+
+\subsection{Literal a)} 
+
+Siguiendo el plan de muestreo propuesto por la compañía y teniendo en cuenta que el tamaño del lote es de 40000 artículos, el tamaño muestra es $n = \sqrt{40000} = `r sqrt(40000)`$, además el 1\% del tamaño de muestra es $c = 200\times0.01 = `r 200*0.01`$.
+
+Para este caso particular se tiene que
+$\frac{200}{40000} = `r 200/4000` < 0.1$, es decir, $N>>n$ y se puede usar la distribución binomial en lugar de la hipergeométrica.
+
+Sea $D$ el número de artículos defectuosos, $D \sim Binomial(200, 0.02)$
+
+$$
+P(D = d) = \binom{200}{d} 0.02^{d} (1 - 0.02)^{200-d}
+$$
+Teniendo en cuenta que el lote es aceptado si el número de defectuosos es menor o igual a 2, entonces la probabilidad de aceptación se calcula como:
+
+$$
+P_a = P(D \leq 2) = \sum_{d=0}^{2} \binom{200}{d} 0.02^{d} (1 - 0.02)^{200-d} = `r round(pbinom(2, 200, 0.02), 4)`
+$$
 <!-- Gaviria -->
 
 \section{Ejercicio 2}
