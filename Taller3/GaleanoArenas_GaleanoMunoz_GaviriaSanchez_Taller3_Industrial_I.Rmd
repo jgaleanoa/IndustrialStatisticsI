@@ -51,25 +51,74 @@ library(latex2exp)
 
 \section{Ejercicio 1}
 
-Una compañía utiliza un plan de muestreo tal que el tamaño de la muestra es la raíz cuadrada del tamaño del lote. Si el 1\% o menos de los artículos de la muestra son defectuosos, el lote es aceptado de lo contrario es rechazado. Si se tiene un lote de tamaño 40000.
+Una compañía utiliza un plan de muestreo tal que el tamaño de la muestra
+es la raíz cuadrada del tamaño del lote. Si el 1\% o menos de los
+artículos de la muestra son defectuosos, el lote es aceptado de lo
+contrario es rechazado. Si se tiene un lote de tamaño 40000.
 
-\subsection{Literal a)} 
+\subsection{Plan de muestreo de la compañia} 
 
-Siguiendo el plan de muestreo propuesto por la compañía y teniendo en cuenta que el tamaño del lote es de 40000 artículos, el tamaño muestra es $n = \sqrt{40000} = `r sqrt(40000)`$, además el 1\% del tamaño de muestra es $c = 200\times0.01 = `r 200*0.01`$.
+Siguiendo el plan de muestreo propuesto por la compañía y teniendo en
+cuenta que el tamaño del lote es de 40000 artículos, el tamaño muestra
+es $n = \sqrt{40000} = `r sqrt(40000)`$, además el 1\% del tamaño de
+muestra es $c = 200\times0.01 = `r 200*0.01`$.
 
 Para este caso particular se tiene que
-$\frac{200}{40000} = `r 200/4000` < 0.1$, es decir, $N>>n$ y se puede usar la distribución binomial en lugar de la hipergeométrica.
+$\frac{200}{40000} = `r 200/4000` < 0.1$, es decir, $N>>n$ y se puede
+usar la distribución binomial en lugar de la hipergeométrica.
 
 Sea $D$ el número de artículos defectuosos, $D \sim Binomial(200, 0.02)$
 
 $$
 P(D = d) = \binom{200}{d} 0.02^{d} (1 - 0.02)^{200-d}
 $$
-Teniendo en cuenta que el lote es aceptado si el número de defectuosos es menor o igual a 2, entonces la probabilidad de aceptación se calcula como:
+Teniendo en cuenta que el lote es aceptado si el número de defectuosos
+es menor o igual a 2, entonces la probabilidad de aceptación se calcula
+como:
 
 $$
-P_a = P(D \leq 2) = \sum_{d=0}^{2} \binom{200}{d} 0.02^{d} (1 - 0.02)^{200-d} = `r round(pbinom(2, 200, 0.02), 4)`
+P_a = P(D \leq 2) = \sum_{d=0}^{2} \binom{200}{d} 0.02^{d} (1 - 0.02)^{200-d} = `r round(pbinom(2, 200, 0.02), 8)`
 $$
+\subsection{Diseño de un plan de muestreo}
+
+Se quiere diseñar un plan de muestreo sencillo con inspección estricta
+con un AQL = 0.10\% y nivel de inspección general II. Para esto se
+procede de la siguiente manera:
+
+* Se identifica la letra según el nivel de inspección general II y un
+tamaño de lote de 40000 la cual es la N.
+* Se identifica la letra N en la tabla militar para inspección estricta
+y se aprecia que para un AQL de 0.10\% no existe un cruce directo entre
+la letra N y dicho nivel por lo que es necesario seguir la dirección de
+una flecha para obtener el tamaño de muestra adecuado.
+* Finalmente, el tamaño de muestra adecuado para el AQL especificado cae
+en la fila de la letra P obteniéndose así un tamaño de muestra de
+$n = 800$.
+* Según el plan de muestreo, para $c=1$ se acepta el lote mientras que
+$c=2$ implica rechazo del lote.
+
+Para comparar el plan de muestreo diseñado con el propuesto por la
+empresa se hace necesario suponer la misma proporción de de defectuosos
+que se asumió previamente, es decir, 0.02. Se hace la observación de que
+en este caso la distribución binomial sigue siendo adecuada pues
+$\frac{800}{40000} = `r 800/40000` < 0.1$
+
+$$
+P_a = P(D\leq1)=\sum_{d=0}^{1} \binom{800}{d} 0.02^{d} (1 - 0.02)^{800-d} = `r round(pbinom(1, 800, 0.02), 8)`
+$$
+
+* El plan de muestreo diseñado según el militar estándar, tiene una
+probabilidad de aceptación muchísimo más pequeña respecto al diseñado
+por la empresa.
+* El tamaño de muestra en el militar es más grande que el propuesto por
+la compañia además que el número de aceptación es más pequeño en el
+diseño estricto.
+* El plan más adecuado depende de las necesidades de la empresa y la
+elección de su método o el militar para el atributo en cuestión debe ser
+evaluando según que tan crítica sea la característica evaluada.
+* Se podría considerar otro tipo de plan de muestreo que se encuentre
+enun punto medio del diseño estricto y el propuesto por la empresa.
+
 <!-- Gaviria -->
 
 \section{Ejercicio 2}
