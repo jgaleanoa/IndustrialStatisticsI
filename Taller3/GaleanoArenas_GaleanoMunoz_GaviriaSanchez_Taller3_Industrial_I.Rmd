@@ -67,7 +67,9 @@ library(latex2exp)
 
 \section{Ejercicio 6}
 
-Se desea controlar la resistencia a la tracción ($X_1$) y el diámetro ($X_2$) de un componente. Con este fin se toman 20 muestras de tamaño 4 y se obtienen los siguiente resultados:
+Se desea controlar la resistencia a la tracción ($X_1$) y el diámetro
+($X_2$) de un componente. Con este fin se toman 20 muestras de tamaño 4
+y se obtienen los siguiente resultados:
 
 ```{r Datos-EJ6}
 rm(list = setdiff(ls(), lsf.str()))
@@ -127,7 +129,11 @@ kable(list(Resistencia, Diametro), booktabs = T,
   kable_styling(latex_options = "HOLD_position")
 ```
 
-Antes de iniciar cualquier desarrollo posterior es importante verificar el supuesto de normalidad bivariada para los datos presentados. Para cumplir se organizan los datos en una matriz conservando los pares de observaciones $(X_{1j}, X_{2j})$ para $j \in \{1, \cdots, 80\}$. La estructura de la matriz resultante es presentada a continuación:
+Antes de iniciar cualquier desarrollo posterior es importante verificar
+el supuesto de normalidad bivariada para los datos presentados. Para
+cumplir se organizan los datos en una matriz conservando los pares de
+observaciones $(X_{1j}, X_{2j})$ para $j \in \{1, \cdots, 80\}$. La
+estructura de la matriz resultante es presentada a continuación:
 
 ```{r}
 merge_data <- cbind(Resistencia %>% unlist() %>% as.numeric(),
@@ -138,7 +144,9 @@ kable(head(merge_data, 10), booktabs = T, align = "c") %>%
   kable_styling(latex_options = "HOLD_position")
 ```
 
-Para chequear el supuesto de normalidad se usa la prueba de normalidad multivariada de Henze - Zirkler, los resultados son presentados a continuación
+Para chequear el supuesto de normalidad se usa la prueba de normalidad
+multivariada de Henze - Zirkler, los resultados son presentados a
+continuación
 
 ```{r}
 mult_norm_test <- MVN::mvn(merge_data, mvnTest = "hz")
@@ -150,17 +158,24 @@ mult_norm_test$multivariateNormality[, -4] %>%
   kable_styling(latex_options = "HOLD_position")
 ```
 
-Considerando un nivel de significancia del 0.05, no se rechaza $H_0$ y se puede asumir que los datos provienen de una distribución normal bivariada
+Considerando un nivel de significancia del 0.05, no se rechaza $H_0$ y
+se puede asumir que los datos provienen de una distribución normal
+bivariada
 
 \subsection{Calculo del estadístico $T^2$}
 
-Dado el supuesto de normalidad bivariada entre la resistencia y el diámetro, se calculan los estadísticos $T^2$ de Hotelling para cada una de las muestras con la siguiente ecuación:
+Dado el supuesto de normalidad bivariada entre la resistencia y el
+diámetro, se calculan los estadísticos $T^2$ de Hotelling para cada una
+de las muestras con la siguiente ecuación:
 
 $$
 T^2 = \frac{n}{s_1^2 s_2^2 - s_{12}^2} \left[s_2^2(\bar{X}_1 - \bar{\bar{X}}_1)^2 + s_1^2(\bar{X}_2 - \bar{\bar{X}}_2)^2 - 2 \cdot s_{12}(\bar{X}_1 - \bar{\bar{X}}_1)(\bar{X}_2 - \bar{\bar{X}}_2)\right]
 $$
 
-donde $\bar{X}_k$ son los promedios de resistencia y diámetro en cada una de las 20 muestras de tamaño 4, $\bar{\bar{X}}_k$ son los promedios globales, $s_k^2$ las varianzas globales y $s_{12}^2$ la covarianza muestral global entre resistencia y diámetro ($k \in \{1,2\}$).
+donde $\bar{X}_k$ son los promedios de resistencia y diámetro en cada
+una de las 20 muestras de tamaño 4, $\bar{\bar{X}}_k$ son los promedios
+globales, $s_k^2$ las varianzas globales y $s_{12}^2$ la covarianza
+muestral global entre resistencia y diámetro ($k \in \{1,2\}$).
 
 ```{r}
 # Xi_Bar
@@ -199,11 +214,53 @@ kable(T2_table, booktabs = T, align = "c", escape = F,
   kable_styling(latex_options = "HOLD_position")
 ```
 
+\subsection{Fase I y límites de control}
 
+Luego de calcular los estadísticos $T^2$, estos son usados para
+construir el límite de control superior del proceso. Cabe resaltar que
+en este caso solo existe el límite superior puesto que la distribución
+de $T^2$ tiene como soporte los reales positivos.
 
+La ecuación de límite de control es de la forma:
 
+$$
+LCS = \frac{p(m-1)(n-1)}{mn-m-p+1} F_{\alpha,\ p,\ mn-m-p+1}
+$$
+$p$ es el número de variables consideradas, en este caso particular 2.
+Reemplazando $p=2,\ n=4,\ m=20$ y considerando un nivel de significancia
+de $\alpha = 0.05$ se obtiene lo siguiente
 
+$$
+\begin{aligned}
+LCS &= \frac{2\times19\times3}{80-20-2+1} \ F_{0.05,\ 2,\ 80-20-2+1} \\
+&= \frac{`r 2*19*3`}{`r 80-20-2+1`} \ (`r qf(0.95, 2, 80-20-2+1) %>% round(4)`) \\
+&= `r round((2*19*3)/(80-20-2+1)*qf(0.95, 2, 80-20-2+1), 4)`
+\end{aligned}
+$$
 
+```{r control-limits6, fig.cap=""}
+LCS <- (2*19*3)/(80-20-2+1)*qf(0.95, 2, 80-20-2+1)
+control_data6 <- data.frame(Muestra = 1:20,
+                            T2 = T2) %>% 
+  mutate(Estado = if_else(T2 > LCS, "Fuera", "Control"))
+
+ggplot(control_data6, aes(Muestra, T2)) +
+  geom_line() +
+  geom_point(aes(col = Estado)) +
+  scale_color_manual(values = c("black", "red")) +
+  geom_hline(yintercept = LCS, linetype = "dashed") +
+  labs(title = "Limite de control fase I", y = TeX("$T^2$")) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+El proceso es problemático debido a que 9 de 20 valores de $T^2$ se
+salen de los límites de control en diversas muestra las cuales no son
+necesariamente consecutivas por lo que se puede concluir que el proceso
+está fuera de control.
+
+Los productores de los componentes en cuestión deben estudiar las
+posibles causas de estas problemáticas lo antes posible y corregirlas
+para mejorar la producción y no perder la confianza de sus clientes.
 
 
 
