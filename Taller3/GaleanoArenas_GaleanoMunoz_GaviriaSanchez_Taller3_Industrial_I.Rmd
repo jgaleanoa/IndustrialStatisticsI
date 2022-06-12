@@ -67,5 +67,149 @@ library(latex2exp)
 
 \section{Ejercicio 6}
 
+Se desea controlar la resistencia a la tracción ($X_1$) y el diámetro ($X_2$) de un componente. Con este fin se toman 20 muestras de tamaño 4 y se obtienen los siguiente resultados:
+
+```{r Datos-EJ6}
+rm(list = setdiff(ls(), lsf.str()))
+Muestra <- 1:20
+Resistencia <- c(66, 70, 68, 72, 
+                 75, 60, 70, 75, 
+                 65, 70, 70, 65, 
+                 72, 70, 75, 65, 
+                 73, 74, 72, 70, 
+                 72, 74, 73, 74, 
+                 63, 62, 65, 66, 
+                 75, 84, 75, 66, 
+                 65, 69, 77, 71, 
+                 70, 68, 67, 67, 
+                 80, 75, 70, 69, 
+                 68, 65, 80, 50, 
+                 74, 80, 76, 74, 
+                 76, 74, 75, 73, 
+                 71, 70, 74, 73, 
+                 68, 67, 70, 69, 
+                 72, 76, 75, 77, 
+                 76, 74, 75, 77, 
+                 72, 74, 73, 75, 
+                 72, 68, 74, 70) %>% 
+  matrix(ncol = 4, byrow = T) %>% 
+  as.data.frame()
+
+Diametro <- c(16, 18, 15, 20,
+              17, 22, 18, 19,
+              20, 18, 15, 18,
+              19, 20, 15, 17,
+              21, 21, 23, 19,
+              21, 19, 20, 18,
+              22, 20, 24, 22,
+              22, 20, 20, 22,
+              18, 16, 18, 18,
+              18, 17, 19, 18,
+              24, 18, 20, 22,
+              20, 21, 20, 22,
+              19, 17, 20, 21,
+              20, 17, 18, 18,
+              18, 16, 17, 18,
+              18, 16, 19, 20,
+              22, 19, 23, 20,
+              19, 23, 20, 21,
+              20, 18, 20, 19,
+              21, 19, 18, 20) %>% 
+  matrix(ncol = 4, byrow = T) %>% 
+  as.data.frame()
+
+# Nombres de las columnas
+colnames(Resistencia) <- c("R1", "R2", "R3", "R4")
+colnames(Diametro) <- c("D1", "D2", "D3", "D4")
+
+kable(list(Resistencia, Diametro), booktabs = T,
+      caption = "Resitencias y diámetros") %>% 
+  kable_styling(latex_options = "HOLD_position")
+```
+
+Antes de iniciar cualquier desarrollo posterior es importante verificar el supuesto de normalidad bivariada para los datos presentados. Para cumplir se organizan los datos en una matriz conservando los pares de observaciones $(X_{1j}, X_{2j})$ para $j \in \{1, \cdots, 80\}$. La estructura de la matriz resultante es presentada a continuación:
+
+```{r}
+merge_data <- cbind(Resistencia %>% unlist() %>% as.numeric(),
+      Diametro %>% unlist() %>% as.numeric()) %>% 
+  as.data.frame()
+colnames(merge_data) <- c("Resistencia", "Diametro")
+kable(head(merge_data, 10), booktabs = T, align = "c") %>% 
+  kable_styling(latex_options = "HOLD_position")
+```
+
+Para chequear el supuesto de normalidad se usa la prueba de normalidad multivariada de Henze - Zirkler, los resultados son presentados a continuación
+
+```{r}
+mult_norm_test <- MVN::mvn(merge_data, mvnTest = "hz")
+mult_norm_test$multivariateNormality[, -4] %>% 
+  kable(booktabs = T, align = "c",
+        col.names = c("Prueba", "Estadístico", "Valor - P"),
+        caption = "Prueba de normalidad bivariada",
+        digits = 4) %>% 
+  kable_styling(latex_options = "HOLD_position")
+```
+
+Considerando un nivel de significancia del 0.05, no se rechaza $H_0$ y se puede asumir que los datos provienen de una distribución normal bivariada
+
+\subsection{Calculo del estadístico $T^2$}
+
+Dado el supuesto de normalidad bivariada entre la resistencia y el diámetro, se calculan los estadísticos $T^2$ de Hotelling para cada una de las muestras con la siguiente ecuación:
+
+$$
+T^2 = \frac{n}{s_1^2 s_2^2 - s_{12}^2} \left[s_2^2(\bar{X}_1 - \bar{\bar{X}}_1)^2 + s_1^2(\bar{X}_2 - \bar{\bar{X}}_2)^2 - 2 \cdot s_{12}(\bar{X}_1 - \bar{\bar{X}}_1)(\bar{X}_2 - \bar{\bar{X}}_2)\right]
+$$
+
+donde $\bar{X}_k$ son los promedios de resistencia y diámetro en cada una de las 20 muestras de tamaño 4, $\bar{\bar{X}}_k$ son los promedios globales, $s_k^2$ las varianzas globales y $s_{12}^2$ la covarianza muestral global entre resistencia y diámetro ($k \in \{1,2\}$).
+
+```{r}
+# Xi_Bar
+Res_prom <- apply(Resistencia, 1, mean)
+Diam_prom <- apply(Diametro, 1, mean)
+
+# Sik^2
+Res_var <- apply(Resistencia, 1, var)
+Diam_var <- apply(Diametro, 1, var)
+
+# Sijk
+# 3 por n = 4 y se divide sobre n - 1
+aux_cov <- (Resistencia - Res_prom)*(Diametro - Diam_prom)/3
+sample_cov <- apply(aux_cov, 1, sum)
+
+#T^2 de Hotelling
+fact_T2 <- 4/(mean(Res_var) * mean(Diam_var) - mean(sample_cov)^2)
+mahalanobis <- mean(Diam_var) * (Res_prom - mean(Res_prom))^2 +
+  mean(Res_var) * (Diam_prom - mean(Diam_prom))^2 -
+  2 * mean(sample_cov) * 
+  (Res_prom - mean(Res_prom)) * (Diam_prom - mean(Diam_prom))
+T2 <- fact_T2 * mahalanobis
+
+# Tabla resumen
+T2_table <- data.frame(Muestra = 1:20,
+                       Res_promedio = Res_prom,
+                       Diametro_promedio = Diam_prom,
+                       Res_vari = Res_var,
+                       Diametro_vari = Diam_var,
+                       Covarianza = sample_cov,
+                       T2 = T2)
+kable(T2_table, booktabs = T, align = "c", escape = F,
+      col.names = c("Muestra", "$\\bar{X}_1$", "$\\bar{X}_2$",
+                    "$s_{1k}^2$", "$s_{2k}^2$", "$s_{12k}$", "$T^2$"),
+      digits = 4) %>% 
+  kable_styling(latex_options = "HOLD_position")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
