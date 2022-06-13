@@ -125,7 +125,116 @@ enun punto medio del diseño estricto y el propuesto por la empresa.
 
 \section{Ejercicio 2}
 
+Se tiene un plan de muestreo simple con los siguientes parámetros: $n=150$, $c=3$, y
+se sabe que la proporción de defectuosos es $p$.
+
+Sea $D$: número de defectuosos en el lote, así $D \sim Binomial(150,p)$.
+
+La probabilidad de aceptar un lote es:
+
+$$
+P_a = P(D\leq3) = \sum_{d=0}^3 {{150}\choose{d}} p^d (1-p)^{150-d}
+$$
+
+Y la probabilidad de rechazar un lote se determina por:
+
+$$
+P_r = P(D>3) = 1-P(D\leq3)=1-P_a
+$$
+\subsection{Literal a}
+
+Sea $X$: Número de lotes aceptados en 10 ensayos, así $X \sim Binomial(10,P_a)$.
+
+La probabilidad de pasar de una inspección normal a reducida es:
+
+$$
+P(X=10)= {10\choose10}P_a^{10}(1-P_a)^{10-10}=P_a^{10}
+$$
+\subsection{Literal b}
+
+Sea $X$: Número de lotes rechazados en 1 ensayo, así $X \sim Binomial(1,P_r)$.
+
+La probabilidad de pasar de una inspección reducida a normal es:
+
+$$
+P(X=1)={1\choose1}P_r(1-P_r)^{1-1}=P_r
+$$
+
+\subsection{Literal c}
+
+Sea $X$: Número de lotes rechazados en 5 ensayos, así $X \sim Binomial(5,P_r)$.
+
+La probabilidad de pasar de una inspección normal a una estricta es:
+
+$$
+P(X=2)={5\choose2}P_r^2(1-P_r)^{5-2}=10P_r^2(1-P_r)^3
+$$
+
+\subsection{Literal d}
+
+Sea $X$: Número de lotes aceptados en 5 ensayos, así $X \sim Binomial(5,P_a)$
+
+La probabilidad de pasar de una inspección estricta a una normal es:
+
+$$
+P(X=5) = {5\choose5}P_a^5(1-P_a)^{5-5}=P_a^5
+$$
+
 \section{Ejercicio 3}
+
+Se tienen los siguientes parámetros para un plan de muestreo doble: $N=3000$, $n_1=90$, $c_1=1$, $n_2=110$, $c_2=2$. Se tiene que:
+
+$P_a$: Probabilidad de aceptación con las muestras combinadas. Así:
+
+$$
+P_a=P_a^I+P_a^{II}
+$$
+Con:
+
+$P_a^I$: Probabilidad de aceptar el lote en la primera muestra.
+
+$P_a^{II}$: Probabilidad de aceptar el lote en la segunda muestra.
+
+Sea $D_1$: Número de defectuosos en la primera muestra, así $D_1 \sim Binomial(90,p)$          
+
+Con esto, la probabilidad de aceptar un lote en la primera muestra es:
+
+$$
+P_a^I = P(D_1\leq 1) = \sum_{d_1=0}^1{90\choose d_1}p^{d_1}(1-p)^{90-d_1}
+$$
+
+Sea $D_2$: Número de defectuosos en la segunda muestra, así $D_2 \sim Binomial(110,p)$         
+
+Con esto, la probabilidad de aceptar un lote en la segunda muestra es:
+
+\begin{equation*}
+\begin{split}
+P_a^{II} &= P(D_1=2,D_2=0)=P(D_1=2)P(D_2=0) \\
+         &= {90 \choose 2}p^2(1-p)^{88}\left[{110 \choose 0}p^0(1-p)^{110-0}\right] \\
+         &= {90 \choose 2}p^2(1-p)^{88}(1-p)^{110}
+\end{split}
+\end{equation*}
+
+Y la probabilidad de aceptar el lote con las muestras combinadas es la siguiente:              
+
+$$
+P_a = \sum_{d_1=0}^1{90\choose d_1}p^{d_1}(1-p)^{90-d_1} + {90 \choose 2}p^2(1-p)^{88}(1-p)^{110}
+$$
+Así entonces, la curva característica de operación para este plan de muestreo se muestra como sigue
+
+```{r fig.cap="Curva OC P vs Pa", CurvaOCPLOT}
+f <- function(p) pbinom(1,90,p)+choose(90,2)*p^2*(1-p)^88*(1-p)^110
+OCframe <- data.frame(p = seq(0,0.07,0.001), pa =f(seq(0,0.07,0.001)))
+
+ggplot(OCframe, aes(p, pa)) +
+  geom_line() +
+  xlim(0,0.07) +
+  labs(x = "P", y = "Pa", title="Curva caracteristica OC")+
+  theme_minimal()+
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+De esta curva característica se aprecia que, si la proporción de defectuosos en un lote es mayor a un 5%, la probabilidad de aceptar dicho lote cae a casi 0. Si la proporción de defectuosos se encuentra entre 0% y 1.5%, la probabilidad de aceptar el lote en cuestión es mayor al 65% creciendo conforme el número de defectuosos se acerca 0.
 
 <!-- Simon -->
 
