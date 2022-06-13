@@ -54,7 +54,7 @@ library(latex2exp)
 Una compañía utiliza un plan de muestreo tal que el tamaño de la muestra
 es la raíz cuadrada del tamaño del lote. Si el 1\% o menos de los
 artículos de la muestra son defectuosos, el lote es aceptado de lo
-contrario es rechazado. Si se tiene un lote de tamaño 40000.
+contrario es rechazado; se tiene un lote de tamaño 40000.
 
 \subsection{Plan de muestreo de la compañia} 
 
@@ -64,7 +64,7 @@ es $n = \sqrt{40000} = `r sqrt(40000)`$, además el 1\% del tamaño de
 muestra es $c = 200\times0.01 = `r 200*0.01`$.
 
 Para este caso particular se tiene que
-$\frac{200}{40000} = `r 200/4000` < 0.1$, es decir, $N>>n$ y se puede
+$\frac{200}{40000} = `r 200/40000` < 0.1$, es decir, $N>>n$ y se puede
 usar la distribución binomial en lugar de la hipergeométrica.
 
 Sea $D$ el número de artículos defectuosos, $D \sim Binomial(200, 0.02)$
@@ -84,7 +84,7 @@ $$
 \subsection{Diseño de un plan de muestreo}
 
 Se quiere diseñar un plan de muestreo sencillo con inspección estricta
-con un AQL = 0.10\% y nivel de inspección general II. Para esto se
+y un \newline AQL = 0.10\% y nivel de inspección general II. Para esto se
 procede de la siguiente manera:
 
 * Se identifica la letra según el nivel de inspección general II y un
@@ -100,7 +100,7 @@ $n = 800$.
 $c=2$ implica rechazo del lote.
 
 Para comparar el plan de muestreo diseñado con el propuesto por la
-empresa se hace necesario suponer la misma proporción de de defectuosos
+empresa se hace necesario suponer la misma proporción de defectuosos
 que se asumió previamente, es decir, 0.02. Se hace la observación de que
 en este caso la distribución binomial sigue siendo adecuada pues
 $\frac{800}{40000} = `r 800/40000` < 0.1$
@@ -119,7 +119,7 @@ diseño estricto.
 elección de su método o el militar para el atributo en cuestión debe ser
 evaluando según que tan crítica sea la característica evaluada.
 * Se podría considerar otro tipo de plan de muestreo que se encuentre
-enun punto medio del diseño estricto y el propuesto por la empresa.
+en un punto medio del diseño estricto y el propuesto por la empresa.
 
 <!-- Gaviria -->
 
@@ -141,7 +141,7 @@ Y la probabilidad de rechazar un lote se determina por:
 $$
 P_r = P(D>3) = 1-P(D\leq3)=1-P_a
 $$
-\subsection{Literal a}
+\subsection{Inspección normal a reducida}
 
 Sea $X$: Número de lotes aceptados en 10 ensayos, así $X \sim Binomial(10,P_a)$.
 
@@ -150,7 +150,7 @@ La probabilidad de pasar de una inspección normal a reducida es:
 $$
 P(X=10)= {10\choose10}P_a^{10}(1-P_a)^{10-10}=P_a^{10}
 $$
-\subsection{Literal b}
+\subsection{Inspección reducida a normal}
 
 Sea $X$: Número de lotes rechazados en 1 ensayo, así $X \sim Binomial(1,P_r)$.
 
@@ -160,7 +160,7 @@ $$
 P(X=1)={1\choose1}P_r(1-P_r)^{1-1}=P_r
 $$
 
-\subsection{Literal c}
+\subsection{Inspección normal a estricta}
 
 Sea $X$: Número de lotes rechazados en 5 ensayos, así $X \sim Binomial(5,P_r)$.
 
@@ -170,7 +170,7 @@ $$
 P(X=2)={5\choose2}P_r^2(1-P_r)^{5-2}=10P_r^2(1-P_r)^3
 $$
 
-\subsection{Literal d}
+\subsection{Inspección estricta a normal}
 
 Sea $X$: Número de lotes aceptados en 5 ensayos, así $X \sim Binomial(5,P_a)$
 
@@ -238,6 +238,7 @@ De esta curva característica se aprecia que, si la proporción de defectuosos e
 
 <!-- Simon -->
 
+\newpage
 \section{Ejercicio 4}
 
 Se desea encontrar el plan de muestreo adecuado para la resistencia de un componente
@@ -260,7 +261,7 @@ media menor, por lo que se puede extrapolar que el lote "bueno" es aquel con
 media de 2.3 desviaciones estándar por debajo de la especificación y el "malo" el otro.
 
 Dicho esto, es inmediato ver $\alpha = 0.04$ y $\beta = 0.07$. Ahora bien, se debe
-establecer el límite de aceptación $\overline{\rm x}_a \text{ y } n$, para lo que
+establecer el límite de aceptación $\overline{\rm x}_a \text{ y el tamaño de muestra } n$, para lo que
 se debe resolver el siguiente sistema de ecuaciones en aras de determinar dichas
 incógnitas que representan el cómo se llevará a cabo el plan de muestreo.
 
@@ -323,7 +324,7 @@ electrónicos deberá realizar lo siguiente:
 
 \section{Ejercicio 5}
 
-En ese caso se desea encontrar los parámetros de un plan de muestreo por variables
+En este caso se desea encontrar los parámetros de un plan de muestreo por variables
 para el espesor de las obleas de silicio en circuitos microelectrónicos cuyo
 límite de especificación superior es de 0.015mm, además, se sabe que dicha
 característica es normal con una desviación estándar de 0.0014mm. Adicionalmente, 
@@ -347,11 +348,15 @@ se tiene que
 $$
 \begin{cases}
 \begin{aligned}
-P(X > LES | \mu_1, \ \sigma^2) = 0.02 &\Leftrightarrow \mu_1 = `r round(mu1, 4)` \\
-P(X > LES | \mu_2, \ \sigma^2) = 0.11 &\Leftrightarrow \mu_2 = `r round(mu2, 4)` \\
+P(X > LES | \mu_1, \ \sigma^2) = 0.02 &\Leftrightarrow \mu_1 = `r round(mu1, 4)` \text{ mm} \\
+P(X > LES | \mu_2, \ \sigma^2) = 0.11 &\Leftrightarrow \mu_2 = `r round(mu2, 4)` \text{ mm} \\
 \end{aligned}
 \end{cases}
 $$
+
+Donde $\mu_1$ es la media del lote con porcentaje de producto no conforme
+igual a 2% y $\mu_2$ la media del lote con porcentaje de producto no conforme
+igual a 11%.
 
 \newpage
 
@@ -401,7 +406,7 @@ de aceptar un lote son $1-\alpha$ y $\beta$ se sigue que
 $$
 \begin{cases}
 \begin{aligned}
-P\left(\frac{LES - \overline{\rm x}}{\sigma} \geq K | \mu_1, \ \sigma^2 \right) &= 1 - \alpha \Leftrightarrow \mu_1 = P(Z \leq \sqrt{n} [Z_1 - K] ) = 1 - \alpha \\
+P\left(\frac{LES - \overline{\rm x}}{\sigma} \geq K | \mu_1, \ \sigma^2 \right) &= 1 - \alpha \Leftrightarrow P(Z \leq \sqrt{n} [Z_1 - K] ) = 1 - \alpha \\
 P\left(\frac{LES - \overline{\rm x}}{\sigma} \geq K | \mu_2, \ \sigma^2\right) &= \beta \Leftrightarrow P(Z \leq \sqrt{n} [Z_2 - K] ) = \beta
 \end{aligned}
 \end{cases}
@@ -434,7 +439,7 @@ cutoff <- L - k*sigma
 ```
 
 Llegados a este punto y teniendo en cuenta que $Z_\alpha = `r round(za, 4)`$,
-$Z_\beta = `r round(zb, 4)`$, $Z_1 = `r round(z1, 4)`$ y $Z_2 = `r round(z2, 4)`$ se
+$Z_\beta = `r round(zb, 4)`$, \newline $Z_1 = `r round(z1, 4)`$ y $Z_2 = `r round(z2, 4)`$ se
 obtiene que la solución del sistema es
 
 $$
@@ -451,12 +456,13 @@ estimar su media y aceptar el lote si esta es menor o igual que `r round(cutoff,
 
 \subsection{Decisión sobre el lote entrante}
 
-Se tiene una muestsra aleatoria de 17 obleas que produjo un promedio de 0.013mm, esto
+Se tiene una muestra aleatoria de 17 obleas que produjo un promedio de 0.013mm, esto
 produce `r ifelse(0.013 <= cutoff, "la aceptación", "el rechazo")` del lote según lo 
 descrito anteriormente.
 
 <!-- Juanjo -->
 
+\newpage
 \section{Ejercicio 6}
 
 Se desea controlar la resistencia a la tracción ($X_1$) y el diámetro
@@ -517,7 +523,7 @@ colnames(Resistencia) <- c("R1", "R2", "R3", "R4")
 colnames(Diametro) <- c("D1", "D2", "D3", "D4")
 
 kable(list(Resistencia, Diametro), booktabs = T,
-      caption = "Resitencias y diámetros") %>% 
+      caption = "Resitencias y diámetros", linesep = "") %>% 
   kable_styling(latex_options = "HOLD_position")
 ```
 
@@ -532,13 +538,13 @@ merge_data <- cbind(Resistencia %>% unlist() %>% as.numeric(),
       Diametro %>% unlist() %>% as.numeric()) %>% 
   as.data.frame()
 colnames(merge_data) <- c("Resistencia", "Diametro")
-kable(head(merge_data, 10), booktabs = T, align = "c") %>% 
+kable(head(merge_data, 10), booktabs = T, align = "c", linesep = "") %>% 
   kable_styling(latex_options = "HOLD_position")
 ```
 
 Para chequear el supuesto de normalidad se usa la prueba de normalidad
 multivariada de Henze - Zirkler, los resultados son presentados a
-continuación
+continuación:
 
 ```{r}
 mult_norm_test <- MVN::mvn(merge_data, mvnTest = "hz")
@@ -566,7 +572,7 @@ $$
 
 donde $\bar{X}_k$ son los promedios de resistencia y diámetro en cada
 una de las 20 muestras de tamaño 4, $\bar{\bar{X}}_k$ son los promedios
-globales, $s_k^2$ las varianzas globales y $s_{12}^2$ la covarianza
+globales, $s_k^2$ las varianzas globales y $s_{12}$ la covarianza
 muestral global entre resistencia y diámetro ($k \in \{1,2\}$).
 
 ```{r}
@@ -602,14 +608,15 @@ T2_table <- data.frame(Muestra = 1:20,
 kable(T2_table, booktabs = T, align = "c", escape = F,
       col.names = c("Muestra", "$\\bar{X}_1$", "$\\bar{X}_2$",
                     "$s_{1k}^2$", "$s_{2k}^2$", "$s_{12k}$", "$T^2$"),
-      digits = 4) %>% 
+      digits = 4, linesep = "") %>% 
   kable_styling(latex_options = "HOLD_position")
 ```
 
 \subsection{Fase I y límites de control}
 
-Luego de calcular los estadísticos $T^2$, estos son usados para
-construir el límite de control superior del proceso. Cabe resaltar que
+Luego de calcular los estadísticos $T^2$, se
+construye el límite de control superior del proceso como se muestra a
+continuación. Cabe resaltar que
 en este caso solo existe el límite superior puesto que la distribución
 de $T^2$ tiene como soporte los reales positivos.
 
@@ -648,7 +655,7 @@ ggplot(control_data6, aes(Muestra, T2)) +
 ```
 
 El proceso es problemático debido a que 9 de 20 valores de $T^2$ se
-salen de los límites de control en diversas muestra las cuales no son
+salen de los límites de control en diversas muestras las cuales no son
 necesariamente consecutivas por lo que se puede concluir que el proceso
 está fuera de control.
 
