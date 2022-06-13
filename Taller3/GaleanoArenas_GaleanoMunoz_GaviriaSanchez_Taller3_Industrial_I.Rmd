@@ -61,7 +61,217 @@ library(latex2exp)
 
 \section{Ejercicio 4}
 
+Se desea encontrar el plan de muestreo adecuado para la resistencia de un componente
+electrónico cuyo límite de especificación superior es de 30 $\Omega$, cumpliendo las 
+siguientes condiciones.
+
+* Que no más del 4% de las veces que se rechacen lotes que tienen una media de 2.3
+desviaciones estándar por debajo de la especificación.
+
+* Que lotes que tienen una media de 1 desviación estándar por debajo del límite de
+especificación sean aceptados no más del 7% de las veces.
+
+Adicionalmente, se sabe que la resistencia del componente posee una distribución normal
+con desviación igual a 5 $\Omega$
+
+\subsection{Determinación del plan de muestreo}
+
+Dado que se tiene un límite de especificación superior, es más beneficioso tener una
+media menor, por lo que se puede extrapolar que el lote "bueno" es aquel con
+media de 2.3 desviaciones estándar por debajo de la especificación y el "malo" el otro.
+
+Dicho esto, es inmediato ver $\alpha = 0.04$ y $\beta = 0.07$. Ahora bien, se debe
+establecer el límite de aceptación $\overline{\rm x}_a \text{ y } n$, para lo que
+se debe resolver el siguiente sistema de ecuaciones en aras de determinar dichas
+incógnitas que representan el cómo se llevará a cabo el plan de muestreo.
+
+$$
+\begin{cases}
+\begin{aligned}
+\frac{\overline{\rm x}_a - \overline{\rm x}_1}{\sigma/\sqrt{n}} &= Z_\alpha \\
+\frac{\overline{\rm x}_a - \overline{\rm x}_2}{\sigma/\sqrt{n}} &= Z_\beta
+\end{aligned}
+\end{cases}
+$$
+
+Donde $\overline{\rm x}_1 = 30 - 2.3\times5 = 18.5 \Omega$ y
+$\overline{\rm x}_2 = 30 - 5 = 25 \Omega$ son la media del lote "bueno" y "malo" 
+respectivamente, además, $Z_\alpha > 0 \text{ y } Z_\beta < 0$.
+
+La solución de este sistema está dada por
+
+$$
+\begin{cases}
+\begin{aligned}
+n &= \left[ \frac{\sigma (Z_\beta - Z_\alpha)}{\overline{\rm x}_1 - \overline{\rm x}_2} \right]^2 \\
+\overline{\rm x}_a &= \frac{\overline{\rm x}_1 Z_\beta - Z_\alpha \overline{\rm x}_2}{Z_\beta - Z_\alpha}
+\end{aligned}
+\end{cases}
+$$
+
+Teniendo en cuenta que $Z_\beta \approx `r round(qnorm(0.07), 4)`$ y $Z_\alpha \approx `r round(qnorm(1 - 0.04), 4)`$ se tiene que
+
+```{r}
+zalpha <- qnorm(1 - 0.04); zbeta <- qnorm(0.07)
+sigma <- 5
+xbar1 <- 30 - 2.3*sigma; xbar2 <- 30 - sigma
+n <- (sigma*(zbeta - zalpha)/(xbar1 - xbar2))^2
+xbara <- (xbar1*zbeta - zalpha*xbar2)/(zbeta - zalpha)
+```
+
+$$
+\begin{cases}
+\begin{aligned}
+n &\approx `r round(n, 4)` \\
+\overline{\rm x}_a &\approx `r round(xbara, 4)`
+\end{aligned}
+\end{cases}
+$$
+
+Así pues, el tamaño de muestra será $n = `r ceiling(n)`$ y $\overline{\rm x}_a = `r round(xbara, 4)`$.
+
+\subsection{Explicación del procedimiento de aplicación del plan de muestreo}
+
+La persona encargada de realizar la inspección de los lotes de los componentes
+electrónicos deberá realizar lo siguiente:
+
+* En primer lugar, seleccionar el lote a inspeccionar y luego numerar de algún modo los componentes electrónicos de dicho lote.
+
+* Posteriormente seleccionar una muestra de `r ceiling(n)` componentes de entre los totales del lote mediante un mecanismo de aleatorización, para así medir la resistencia en dichos componentes con un multímetro o alguna herramienta con capacidad de medir la resistencia en ohms $(\Omega)$ y promediar las resistencias medidas en la muestra.
+
+* Finalmente si el promedio calculado previamente es inferior a `r round(xbara, 4)`, se acepta el lote y se rechaza en caso contrario.
+
+
 \section{Ejercicio 5}
+
+En ese caso se desea encontrar los parámetros de un plan de muestreo por variables
+para el espesor de las obleas de silicio en circuitos microelectrónicos cuyo
+límite de especificación superior es de 0.015mm, además, se sabe que dicha
+característica es normal con una desviación estándar de 0.0014mm. Adicionalmente, 
+se desea lo siguiente:
+
+* Aceptar lotes con el 11% de producto no conforme con una probabilidad del 5%.
+* Para los lotes de 2% de producto no conforme, se desea que la probabilidad de rechazo no sea superior al 4%.
+* Se desea cumplir la primera condición exactamente
+
+\subsection{Deducción del plan de muestro por atributos}
+
+```{r}
+rm(list = ls())
+L <- 0.015; sigma <- 0.0014 
+mu1 <- L + qnorm(0.02)*sigma; mu2 <- L + qnorm(0.11)*sigma
+```
+
+Primero se establece un panorama general de la situación, pues del enunciado
+se tiene que 
+
+$$
+\begin{cases}
+\begin{aligned}
+P(X > LES | \mu_1, \ \sigma^2) = 0.02 &\Leftrightarrow \mu_1 = `r round(mu1, 4)` \\
+P(X > LES | \mu_2, \ \sigma^2) = 0.11 &\Leftrightarrow \mu_2 = `r round(mu2, 4)` \\
+\end{aligned}
+\end{cases}
+$$
+\newpage
+
+Por lo que la característica de calidad se distribuye así.
+
+```{r, fig.cap = "Distribución del espesor de las obleas de silicio en las dos clases de lotes"}
+ggplot() +
+  stat_function(fun = dnorm, args = list(mean = mu1, sd = sigma),
+                mapping = aes(color = "Menor proporción de defectuosos")) +
+  stat_function(fun = dnorm, args = list(mean = mu2, sd = sigma),
+                linetype = "dashed", 
+                mapping = aes(color = "Mayor proporción de defectuosos")) +
+  xlim(c(mu1 - 3*sigma, mu2 + 3*sigma)) +
+  geom_vline(xintercept = L) +
+  geom_vline(xintercept = mu1, color = "green") +
+  geom_vline(xintercept = mu2, color = "red", linetype = "dashed") +
+  labs(color = "Clase de lote", x = "Resistencia", y = "",
+       title = "Comparativa entre las dos clases de lotes") +
+  scale_colour_manual(values = c("red", "green")) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = .5))
+  
+```
+
+De allí se puede definir la estandarización que relaciona la proporción de defectuosos
+con la media del lote como sigue.
+
+$$
+\begin{cases}
+\begin{aligned}
+Z_1 &= \frac{LES - \mu_1}{\sigma} \\
+Z_2 &= \frac{LES - \mu_2}{\sigma}
+\end{aligned}
+\end{cases}
+$$
+Donde se satisface que $P(Z > Z_1) = 0.02$ y $P(Z > Z_2) = 0.11$ por lo visto
+anteriormente en la determinación de las medias.
+
+Ahora, considere que para el método $K$, un lote se acepta si $$\frac{LES - \overline{\rm x}}{\sigma} \geq K$$
+lo cual es equivalente a $$\frac{\overline{\rm x} - \mu}{\sigma/\sqrt{n}} \leq \left[\left(\frac{L - \mu}{\sigma} \right) -K \right]$$
+
+Reemplazando por $\mu_1$ y $\mu_2$, considerando que las respectivas probabilidades
+de aceptar un lote son $1-\alpha$ y $\beta$ se sigue que
+
+
+$$
+\begin{cases}
+\begin{aligned}
+P\left(\frac{LES - \overline{\rm x}}{\sigma} \geq K | \mu_1, \ \sigma^2 \right) &= 1 - \alpha \Leftrightarrow \mu_1 = P(Z \leq \sqrt{n} [Z_1 - K] ) = 1 - \alpha \\
+P\left(\frac{LES - \overline{\rm x}}{\sigma} \geq K | \mu_2, \ \sigma^2\right) &= \beta \Leftrightarrow P(Z \leq \sqrt{n} [Z_2 - K] ) = \beta
+\end{aligned}
+\end{cases}
+$$
+Lo cual conlleva al siguiente sistema de ecuaciones
+
+$$
+\begin{cases}
+\begin{aligned}
+\sqrt{n} [Z_1 - K] )  &= Z_{\alpha} \\
+\sqrt{n} [Z_2 - K] )  &= Z_{\beta} 
+\end{aligned}
+\end{cases}
+$$
+con $Z_\alpha$ y $Z_\beta$ cuantiles superior e inferior respectivamente.
+
+Resolviendo para $n$ se puede ver que $$n = \left[\frac{Z_\alpha - Z_\beta}{Z_1 - Z_2} \right]^2$$
+
+adicionalmente, como se quiere cumplir la primera condición enunciada al inicio, se
+tiene que $$K = Z_2 - \frac{Z_\beta}{\sqrt{n}}$$
+
+
+```{r}
+za <- qnorm(0.04, lower.tail = F); zb <- qnorm(0.05)
+z1 <- qnorm(0.02, lower.tail = F); z2 <- qnorm(0.11, lower.tail = F)
+n <- ((za - zb)/(z1 - z2))^2
+k <- z2 - zb/sqrt(n)
+cutoff <- L - k*sigma 
+```
+
+Llegados a este punto y teniendo en cuenta que $Z_\alpha = `r round(za, 4)`$,
+$Z_\beta = `r round(zb, 4)`$, $Z_1 = `r round(z1, 4)`$ y $Z_2 = `r round(z2, 4)`$ se
+obtiene que la solución del sistema es
+
+$$
+\begin{cases}
+\begin{aligned}
+n &= `r round(n, 4)` \\
+k &= `r round(k, 4)`
+\end{aligned}
+\end{cases}
+$$
+
+Así, a fin de cuentas se deben tomar muestras de tamaño $n = `r ceiling(n)`$,
+estimar su media y aceptar el lote si esta es menor o igual que `r round(cutoff, 4)`.
+
+\subsection{Decisión sobre el lote entrante}
+
+Se tiene una muestsra aleatoria de 17 obleas que produjo un promedio de 0.013mm, esto
+produce `r ifelse(0.013 <= cutoff, "la aceptación", "el rechazo")` del lote según lo 
+descrito anteriormente.
 
 <!-- Juanjo -->
 
