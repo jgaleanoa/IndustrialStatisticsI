@@ -72,6 +72,7 @@ Sea $D$ el número de artículos defectuosos, $D \sim Binomial(200, 0.02)$
 $$
 P(D = d) = \binom{200}{d} 0.02^{d} (1 - 0.02)^{200-d}
 $$
+
 Teniendo en cuenta que el lote es aceptado si el número de defectuosos
 es menor o igual a 2, entonces la probabilidad de aceptación se calcula
 como:
@@ -79,6 +80,7 @@ como:
 $$
 P_a = P(D \leq 2) = \sum_{d=0}^{2} \binom{200}{d} 0.02^{d} (1 - 0.02)^{200-d} = `r round(pbinom(2, 200, 0.02), 8)`
 $$
+
 \subsection{Diseño de un plan de muestreo}
 
 Se quiere diseñar un plan de muestreo sencillo con inspección estricta
@@ -241,6 +243,7 @@ P(X > LES | \mu_2, \ \sigma^2) = 0.11 &\Leftrightarrow \mu_2 = `r round(mu2, 4)`
 \end{aligned}
 \end{cases}
 $$
+
 \newpage
 
 Por lo que la característica de calidad se distribuye así.
@@ -275,6 +278,7 @@ Z_2 &= \frac{LES - \mu_2}{\sigma}
 \end{aligned}
 \end{cases}
 $$
+
 Donde se satisface que $P(Z > Z_1) = 0.02$ y $P(Z > Z_2) = 0.11$ por lo visto
 anteriormente en la determinación de las medias.
 
@@ -293,6 +297,7 @@ P\left(\frac{LES - \overline{\rm x}}{\sigma} \geq K | \mu_2, \ \sigma^2\right) &
 \end{aligned}
 \end{cases}
 $$
+
 Lo cual conlleva al siguiente sistema de ecuaciones
 
 $$
@@ -504,6 +509,7 @@ La ecuación de límite de control es de la forma:
 $$
 LCS = \frac{p(m-1)(n-1)}{mn-m-p+1} F_{\alpha,\ p,\ mn-m-p+1}
 $$
+
 $p$ es el número de variables consideradas, en este caso particular 2.
 Reemplazando $p=2,\ n=4,\ m=20$ y considerando un nivel de significancia
 de $\alpha = 0.05$ se obtiene lo siguiente
@@ -531,6 +537,7 @@ ggplot(control_data6, aes(Muestra, T2)) +
   theme_minimal() +
   theme(plot.title = element_text(hjust = 0.5))
 ```
+
 El proceso es problemático debido a que 9 de 20 valores de $T^2$ se
 salen de los límites de control en diversas muestra las cuales no son
 necesariamente consecutivas por lo que se puede concluir que el proceso
