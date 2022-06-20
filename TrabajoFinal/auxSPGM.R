@@ -129,3 +129,8 @@ cusumplot <- ggplot(data = datoscusum, aes(Muestra, Ci, color = sign, group = si
   theme(plot.title = element_text(hjust = .5)) +
   scale_color_manual(values = c("cyan", "red"))
 ggplotly(cusumplot)
+
+library(leaflet)
+leaflet() %>% 
+  addTiles() %>% 
+  addMarkers(lng = -75.6269963, lat = 6.1201324)
