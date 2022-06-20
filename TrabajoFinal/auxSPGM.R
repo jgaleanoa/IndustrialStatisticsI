@@ -170,5 +170,14 @@ ggplot(datos, mapping = aes(KGS.)) +
   theme_minimal() +
   theme(plot.title = element_text(hjust = 0.5))
   
+# Cp
+num <- 3/(6*sigma)
+den <- sqrt(1 + ((mu - 20.5)/sigma)^2)
+num/den
+
+
+
+
+
 
 
