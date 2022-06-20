@@ -1,0 +1,110 @@
+---
+header-includes:
+- \usepackage{longtable}
+- \usepackage[utf8]{inputenc}
+- \usepackage[spanish]{babel}\decimalpoint
+- \setlength{\parindent}{1.25cm}
+- \usepackage{amsmath}
+- \usepackage{xcolor}
+- \usepackage{cancel}
+- \usepackage{array}
+- \usepackage{float}
+- \usepackage{multirow}
+output:
+  pdf_document: 
+    number_sections: yes
+fontsize: 12pt
+papersize: letter
+geometry: margin = 1in
+language: "es"
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, fig.align = "center",
+                      fig.height = 3.2, fig.pos = "H")
+library(knitr)
+library(ggplot2)
+library(dplyr)
+```
+
+```{=tex}
+\input{titlepage}
+\thispagestyle{empty}
+\tableofcontents
+\newpage
+\thispagestyle{empty}
+\listoffigures
+\newpage
+```
+```{=tex}
+\pagestyle{myheadings}
+\setcounter{page}{4}
+```
+
+\section{ALLTEX}
+
+Es una empresa que centra sus actividades económicas en la importación,
+producción y comercialización de todo tipo de insumos para la industria
+textil. Su catálogo de productos comprende desde todo tipo de hilos y filamentos, hasta telas y cauchos para uso industrial. 
+
+\begin{figure}[H]
+\centerline{\includegraphics{Alltexlogo.png}}
+\caption{Logo Compañía}
+\label{fig1}
+\end{figure}
+
+La sede principal de la compañía se encuentra ubicada en el parque empresarial Quality center en el municipio de la estrella, sin embargo tienen presencia en las ciudades más grandes del país.
+
+\begin{figure}[H]
+\centerline{\includegraphics{qualitycenter.jpg}}
+\caption{Sede principal}
+\label{fig2}
+\end{figure}
+
+\section{Proceso productivo}
+
+\begin{figure}[H]
+\centerline{\includegraphics{planta.jpeg}}
+\caption{Interior planta}
+\label{fig3}
+\end{figure}
+
+El proceso productivo de las telas comienza con la materia prima, la cual es constituída por unos rollos de hilo, los cuales son escogidos dependiendo del tipo de tela que se esté fabricando. Para este tipo de proceso en el cual se produce un tipo de tela, la materia prima generalmente es proporcionada por un proveedor extranjero. Seguidamente, para cada corrida, ingresan a la máquina 46 lineas de hilo por medio de unas tuberías ubicadas en la parte superior. Una vez hiladas las agujas comienza el tejido, proceso que está constantemente supervisado por un operario de planta. Una vez consumido el material de los 46 rollos de filamento, se toma la tela obtenida y se pone en una báscula para ser pesada. Finalmente se enrolla en un carrete y se distribuye a los diferentes clientes de la compañía
+
+\section{Datos}
+
+La base de datos proporcionada por la compañía comprende 1712 observaciones correspondientes a corridas industriales desde principios del mes de diciembre del año 2021. Esta base de datos contiene el registro del peso de cada rollo de tela producido en la empresa. Además de eso, tiene alguna información de interés como novedades en el proceso, el operario implicado, la fecha, el turno, entre otros.
+
+```{r}
+ALLTEXMAYPRESENT <- readRDS("ALLTEXMAYPRESENT.Rds")
+kable(ALLTEXMAYPRESENT[1:5,c(2:4,9)],
+      caption = "Algunas variables presentes",
+      align = 'c',
+      longtable = T,
+      booktab = T)
+```
+
+La variable a controlar para este proceso es el peso en kilogramos del producto final.
+
+Antes de iniciar el proceso de construcción de gráficos de control, es importante verificar el supuesto de normalidad en la respuesta (peso de la tela en kilogramos), para garantizar la correcta implementación de las herramientas de calidad.
+
+Sin embargo y en este caso, luego de aplicar pruebas gráficas y formales de bondad de ajuste para normalidad, se encontró que este supuesto se rechazaba con contundencia.
+
+En la indagación de por qué sucedía esto, se construyó el siguiente gráfico:
+
+```{r}
+datosbad <- read.table("TSbad.txt", header = T, dec = ",")
+datosbad %>% 
+  filter(KGS>16) %>%
+  mutate(ind = 1:1700) %>%
+  ggplot(aes(x = ind, y = KGS)) + geom_line()
+```
+
+De este último se puede apreciar que realmente en la base de datos proporcionada por la empresa, se encuentra información mezclada de diferentes procesos, puesto que, como se observa en la primera mitad de la serie temporal, existen periodos en los que la producción es considerablemente más alta o más baja. Por esta razón se decide trabajar con la información más reciente del proceso.
+
+Particularmente, se consideró adecuado emplear la información disponible y correspondiente al último mes de actividad productiva.
+
+Así, evitando distribuciones multimodales o de colas pesadas, se pudo concluír normalidad en los datos.
