@@ -82,7 +82,7 @@ df.ind.2 <- first.mu$datos
 
 second.mu <- plotind(df.ind.2)
 (p2.2 <- second.mu$graph)
-df.ind.2 <- first.mu$datos
+df.ind.3 <- second.mu$datos
 ggplotly(p2.2)
 
 mu <- mean(df.ind.2$KGS.)
@@ -134,3 +134,41 @@ library(leaflet)
 leaflet() %>% 
   addTiles() %>% 
   addMarkers(lng = -75.6269963, lat = 6.1201324)
+
+
+
+# Curva OC
+k <- seq(from = 0, to = 6, by = 0.01)
+oc_cool <- function(k, mu, sigma, LCL, UCL){
+  pnorm(UCL, mu + k*sigma, sigma) - pnorm(LCL, mu + k*sigma, sigma)
+}
+beta <- sapply(k, oc_cool, mu = mu, sigma = sigma, UCL = UCL, LCL = LCL)
+
+plotly::ggplotly(ggplot(mapping = aes(k, beta)) +
+  geom_line() +
+  labs(title = "Curva OC para medidas individuales",
+       y = "Probabilidad de no detectar el desplazamiento de media") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5)))
+
+# Valiacion de supuestos
+res_ad_test <- "Resultado Anderson - Darling\n A = 0.38012\n Valor-P = 0.3766"
+ggplot(mapping = aes(sample = datos$KGS.)) +
+  geom_qq() +
+  geom_qq_line() +
+  labs(x = "Cuantiles teóricos", y = "Cuantiles muestrales", 
+       title = "Gráfico probalidad normal") +
+  geom_label(aes(x = -1.5, y = 20.5, label = res_ad_test)) +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+ggplot(datos, mapping = aes(KGS.)) +
+  geom_histogram(bins = nclass.Sturges(datos$KGS.), 
+                 fill = "cyan", col = "black") +
+  labs(title = "Distribución de la masa [Kg]",
+       y = "Frecuencia", x = "Masa de los rollos de tela") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5))
+  
+
+
